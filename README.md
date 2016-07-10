@@ -26,7 +26,7 @@ Example: play a note when pressing button #1. hat position changes frequency, y 
 
 	func main() {
 		events := Capture(
-			Channel{10, State.OnDouble}, // events[0] button #10 double pressed
+			Channel{10, State.OnLong}, // events[0] button #10 long pressed
 			Channel{1, State.OnClose}, // events[1] button #1 closes
 			Channel{1, State.OnMove},  // events[2] hat #1 moves
 		)
