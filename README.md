@@ -1,7 +1,7 @@
 # joysticks
 Go language joystick interface.
 
-uses channels for events, so multi-threaded.
+uses channels for events, for flexibility and multi-threading.
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 
@@ -9,7 +9,7 @@ Installation:
 
      go get github.com/splace/joysticks
 
-Example: play a note when pressing button #1. hat position changes frequency, y axis, and volume, x axis. (double press button #10 to exit) 
+Example: play a note when pressing button #1. hat position changes frequency, y axis, and volume, x axis. (long press button #10 to exit) 
 
 	package main
 

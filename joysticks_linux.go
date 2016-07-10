@@ -87,6 +87,7 @@ func Capture(registrees ...Channel) []chan event {
 
 // Connect sets up a go routine that puts a joysticks events onto registered channels.
 // register channels by using the returned state object's On<xxx>(index) methods.
+// Note: only one event, of each type '<xxx>', for each 'index', re-registering stops previously registered event. 
 // then activate using state objects ProcessEvents() method.(usually in a go routine.)
 func Connect(index int) (js State, e error) {
 	r, e := os.OpenFile(fmt.Sprintf("/dev/input/js%d", index-1), os.O_RDONLY, 0666)
@@ -195,7 +196,7 @@ func (js State) OnClose(button uint8) chan event {
 	return c
 }
 
-// button goes closed
+// button goes open and last event on it, closed, wasn't recent. (within 1 second) 
 func (js State) OnLong(button uint8) chan event {
 	c := make(chan event)
 	js.buttonLongPressEvents[button] = c
