@@ -96,34 +96,34 @@ type Channel struct {
 }
 
 // button goes open
-func (js State) OnOpen(button uint8) chan event {
+func (js *State) OnOpen(button uint8) chan event {
 	c := make(chan event)
 	js.buttonOpenEvents[button] = c
 	return c
 }
 
 // button goes closed
-func (js State) OnClose(button uint8) chan event {
+func (js *State) OnClose(button uint8) chan event {
 	c := make(chan event)
 	js.buttonCloseEvents[button] = c
 	return c
 }
 
 // button goes open and last event on it, closed, wasn't recent. (within 1 second) 
-func (js State) OnLong(button uint8) chan event {
+func (js *State) OnLong(button uint8) chan event {
 	c := make(chan event)
 	js.buttonLongPressEvents[button] = c
 	return c
 }
 
 // hat moved
-func (js State) OnMove(hat uint8) chan event {
+func (js *State) OnMove(hat uint8) chan event {
 	c := make(chan event)
 	js.hatChangeEvents[hat] = c
 	return c
 }
 
-func (js State) ButtonExists(button uint8) (ok bool) {
+func (js *State) ButtonExists(button uint8) (ok bool) {
 	for _, v := range js.buttons {
 		if v.number == button {
 			return true
@@ -132,7 +132,7 @@ func (js State) ButtonExists(button uint8) (ok bool) {
 	return
 }
 
-func (js State) HatExists(hat uint8) (ok bool) {
+func (js *State) HatExists(hat uint8) (ok bool) {
 	for _, v := range js.hatAxes {
 		if v.number == hat {
 			return true
@@ -141,7 +141,7 @@ func (js State) HatExists(hat uint8) (ok bool) {
 	return
 }
 
-func (js State) InsertSyntheticEvent(v int16, t uint8, i uint8) {
+func (js *State) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	js.osEvent <- osEventRecord{Value: v, Type: t, Index: i}
 }
 

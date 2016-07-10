@@ -34,11 +34,44 @@ func TestJoysticksCapture(t *testing.T) {
 	}
 }
 
-func TestJoysticksAdvanced(t *testing.T) {
-	js1, err := Connect(1)
+func TestJoysticksMutipleCapture(t *testing.T) {
+	events1 := Capture(
+		Channel{10, State.OnLong}, // event[0] button #10 long pressed
+		Channel{1, State.OnClose}, // event[1] button #1 closes
+		Channel{1, State.OnMove},  // event[2] hat #1 moves
+	)
+	events2 := Capture(
+		Channel{10, State.OnLong}, // event[0] button #10 long pressed
+		Channel{1, State.OnClose}, // event[1] button #1 closes
+		Channel{1, State.OnMove},  // event[2] hat #1 moves
+	)
+	var x float32 = .5
+	var f time.Duration = time.Second / 440
+	for {
+		select {
+		case <-events1[0]:
+			return
+		case <-events2[0]:
+			return
+		case <-events1[1]:
+			play(NewSound(NewTone(f, float64(x)), time.Second/3))
+		case <-events2[1]:
+			play(NewSound(NewTone(f, float64(x)), time.Second/3))
+		case h := <-events1[2]:
+			x = h.(HatChangeEvent).X/2 + .5
+			f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
+		case h := <-events2[2]:
+			x = h.(HatChangeEvent).X/2 + .5
+			f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
+		}
+	}
+}
 
-	if err != nil {
-		panic(err)
+func TestJoysticksAdvanced(t *testing.T) {
+	js1:= Connect(1)
+
+	if js1 == nil {
+		panic("no joysticks")
 	}
 	if len(js1.buttons) < 10 || len(js1.hatAxes) < 6 {
 		t.Errorf("joystick#1, available buttons %d, Hats %d\n", len(js1.buttons), len(js1.hatAxes)/2)

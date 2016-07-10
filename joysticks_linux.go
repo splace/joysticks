@@ -21,34 +21,38 @@ type osEventRecord struct {
 const maxValue = 1<<15 - 1
 
 // Capture returns a chan, for each registree, getting the events the registree indicates.
+// Finds the first unused joystick, from a max of 4.
 // Intended for bacic use since doesn't return state object.
 func Capture(registrees ...Channel) []chan event {
-	js, err := Connect(1)
-	if err != nil {
+	js:= Connect(1)
+	for i:=2;js==nil && i<5;i++{ 
+		js = Connect(i)
+	}
+	if js==nil {
 		return nil
 	}
 	go js.ProcessEvents()
 	chans := make([]chan event, len(registrees))
 	for i, fns := range registrees {
-		chans[i] = fns.Method(js, fns.Number)
+		chans[i] = fns.Method(*js, fns.Number)
 	}
 	return chans
 }
 
 // Connect sets up a go routine that puts a joysticks events onto registered channels.
 // register channels by using the returned state object's On<xxx>(index) methods.
-// Note: only one event, of each type '<xxx>', for each 'index', re-registering stops previously registered event. 
+// Note: only one event, of each type '<xxx>', for each 'index', re-registering stops events going on the old channel. 
 // then activate using state objects ProcessEvents() method.(usually in a go routine.)
-func Connect(index int) (js State, e error) {
-	r, e := os.OpenFile(fmt.Sprintf("/dev/input/js%d", index-1), os.O_RDONLY, 0666)
+func Connect(index int) (js *State) {
+	r, e := os.OpenFile(fmt.Sprintf("/dev/input/js%d", index-1), os.O_RDWR, 0400)
 	if e != nil {
-		return
+		return nil
 	}
-	js = State{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event),make(map[uint8]chan event)}
+	js = &State{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event),make(map[uint8]chan event)}
 	// start thread to read joystick events to the joystick.state osEvent channel
 	go eventPipe(r, js.osEvent)
 	js.populate()
-	return js, nil
+	return js
 }
 
 // fill in the joysticks available events from the synthetic state events burst produced initially by the driver.
