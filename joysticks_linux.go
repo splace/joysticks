@@ -69,7 +69,7 @@ type Channel struct {
 	Method func(State, uint8) chan event
 }
 
-// Capture arranges for the registrees (channels) to get particular events.
+// Capture returns a chan, for each registree, getting the events the registree indicates.
 // Intended for bacic use since doesn't return state object.
 func Capture(registrees ...Channel) []chan event {
 	js, err := Connect(1)
