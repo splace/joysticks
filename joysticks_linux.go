@@ -39,7 +39,7 @@ type State struct {
 	hatAxes           map[uint8]hatAxis
 	buttonCloseEvents map[uint8]chan event
 	buttonOpenEvents  map[uint8]chan event
-	buttonDoublePressEvents  map[uint8]chan event
+	buttonLongPressEvents  map[uint8]chan event
 	hatChangeEvents   map[uint8]chan event
 }
 
@@ -149,8 +149,8 @@ func (js State) ProcessEvents() {
 				if c, ok := js.buttonOpenEvents[js.buttons[evt.Index].number]; ok {
 					c <- ButtonChangeEvent{toDuration(evt.Time)}
 				}
-				if c, ok := js.buttonDoublePressEvents[js.buttons[evt.Index].number]; ok {
-					if toDuration(evt.Time)<js.buttons[evt.Index].time+time.Second/5{
+				if c, ok := js.buttonLongPressEvents[js.buttons[evt.Index].number]; ok {
+					if toDuration(evt.Time)>js.buttons[evt.Index].time+time.Second{
 						c <- ButtonChangeEvent{toDuration(evt.Time)}
 					}
 				}
@@ -196,9 +196,9 @@ func (js State) OnClose(button uint8) chan event {
 }
 
 // button goes closed
-func (js State) OnDouble(button uint8) chan event {
+func (js State) OnLong(button uint8) chan event {
 	c := make(chan event)
-	js.buttonDoublePressEvents[button] = c
+	js.buttonLongPressEvents[button] = c
 	return c
 }
 
