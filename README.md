@@ -26,9 +26,9 @@ Example: play a note when pressing button #1. (button #10 to exit) hat changes f
 
 	func main() {
 		events := Capture(
-			Channel{10, State.OnOpen}, // event[0] button #10 opens
-			Channel{1, State.OnClose}, // event[1] button #1 closes
-			Channel{1, State.OnMove},  // event[2] hat #1 moves
+			Channel{10, State.OnOpen}, // events[0] button #10 opens
+			Channel{1, State.OnClose}, // events[1] button #1 closes
+			Channel{1, State.OnMove},  // events[2] hat #1 moves
 		)
 		var x float32 = .5
 		var f time.Duration = time.Second / 440
