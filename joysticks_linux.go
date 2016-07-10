@@ -12,7 +12,7 @@ import (
 
 // see; https://www.kernel.org/doc/Documentation/input/joystick-api.txt
 type osEventRecord struct {
-	Time  uint32 // event timestamp in milliseconds 32bit so, about a month
+	Time  uint32 // event timestamp, unknown base, in milliseconds 32bit so, about a month
 	Value int16  // value
 	Type  uint8  // event type
 	Index uint8  // axis/button
@@ -39,6 +39,7 @@ type State struct {
 	hatAxes           map[uint8]hatAxis
 	buttonCloseEvents map[uint8]chan event
 	buttonOpenEvents  map[uint8]chan event
+	buttonDoublePressEvents  map[uint8]chan event
 	hatChangeEvents   map[uint8]chan event
 }
 
@@ -92,8 +93,8 @@ func Connect(index int) (js State, e error) {
 	if e != nil {
 		return
 	}
-	js = State{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
-	// start thread to read joystick eventd to the joystick.state osEvent channel
+	js = State{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event),make(map[uint8]chan event)}
+	// start thread to read joystick events to the joystick.state osEvent channel
 	go eventPipe(r, js.osEvent)
 	js.populate()
 	return js, nil
@@ -148,6 +149,11 @@ func (js State) ProcessEvents() {
 				if c, ok := js.buttonOpenEvents[js.buttons[evt.Index].number]; ok {
 					c <- ButtonChangeEvent{toDuration(evt.Time)}
 				}
+				if c, ok := js.buttonDoublePressEvents[js.buttons[evt.Index].number]; ok {
+					if toDuration(evt.Time)<js.buttons[evt.Index].time+time.Second/5{
+						c <- ButtonChangeEvent{toDuration(evt.Time)}
+					}
+				}
 			}
 			if evt.Value == 1 {
 				if c, ok := js.buttonCloseEvents[js.buttons[evt.Index].number]; ok {
@@ -186,6 +192,13 @@ func (js State) OnOpen(button uint8) chan event {
 func (js State) OnClose(button uint8) chan event {
 	c := make(chan event)
 	js.buttonCloseEvents[button] = c
+	return c
+}
+
+// button goes closed
+func (js State) OnDouble(button uint8) chan event {
+	c := make(chan event)
+	js.buttonDoublePressEvents[button] = c
 	return c
 }
 

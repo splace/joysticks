@@ -15,7 +15,7 @@ import "math"
 
 func TestJoysticksCapture(t *testing.T) {
 	events := Capture(
-		Channel{10, State.OnOpen}, // event[0] button #10 opens
+		Channel{10, State.OnDouble}, // event[0] button #10 double pressed
 		Channel{1, State.OnClose}, // event[1] button #1 closes
 		Channel{1, State.OnMove},  // event[2] hat #1 moves
 	)
