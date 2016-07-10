@@ -116,10 +116,10 @@ func (js State) OnLong(button uint8) chan event {
 	return c
 }
 
-// axis moved
-func (js State) OnMove(hatAxis uint8) chan event {
+// hat moved
+func (js State) OnMove(hat uint8) chan event {
 	c := make(chan event)
-	js.hatChangeEvents[hatAxis] = c
+	js.hatChangeEvents[hat] = c
 	return c
 }
 
