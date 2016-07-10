@@ -190,9 +190,9 @@ func (js State) OnClose(button uint8) (c chan event) {
 }
 
 // axis moved
-func (js State) OnMove(hatAsix uint8) (c chan event) {
+func (js State) OnMove(hatAxis uint8) (c chan event) {
 	c = make(chan event)
-	js.hatChangeEvents[hatAsix] = c
+	js.hatChangeEvents[hatAxis] = c
 	return c
 }
 
