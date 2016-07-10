@@ -9,7 +9,7 @@ Installation:
 
      go get github.com/splace/joysticks
 
-Example: play a note when pressing button #1. hat position changes frequency, y axis, and volume, x axis. (button #10 to exit) 
+Example: play a note when pressing button #1. hat position changes frequency, y axis, and volume, x axis. (double press button #10 to exit) 
 
 	package main
 
@@ -26,7 +26,7 @@ Example: play a note when pressing button #1. hat position changes frequency, y 
 
 	func main() {
 		events := Capture(
-			Channel{10, State.OnOpen}, // events[0] button #10 opens
+			Channel{10, State.OnDouble}, // events[0] button #10 double pressed
 			Channel{1, State.OnClose}, // events[1] button #1 closes
 			Channel{1, State.OnMove},  // events[2] hat #1 moves
 		)
