@@ -33,7 +33,7 @@ type button struct {
 	value  bool
 }
 
-type state struct {
+type State struct {
 	osEvent           chan osEventRecord
 	buttons           map[uint8]button
 	hatAxes           map[uint8]hatAxis
@@ -64,8 +64,8 @@ func (b ButtonChangeEvent) Moment() time.Duration {
 }
 
 type Channel struct {
-	number    uint8
-	channelFn func(state, uint8) chan event
+	Number    uint8
+	ChannelFn func(State, uint8) chan event
 }
 
 // Capture arranges for the registrees (channels) to get particular events.
@@ -78,19 +78,19 @@ func Capture(registrees ...Channel) []chan event {
 	go js.ProcessEvents()
 	chans := make([]chan event, len(registrees))
 	for i, fns := range registrees {
-		chans[i] = fns.channelFn(js, fns.number)
+		chans[i] = fns.ChannelFn(js, fns.Number)
 	}
 	return chans
 }
 
 // Connect sets up a go routine that puts a joysticks events onto registered channels.
 // to register channels use the returned state object's On<xxx>(index) methods.
-func Connect(index int) (js state, e error) {
+func Connect(index int) (js State, e error) {
 	r, e := os.OpenFile(fmt.Sprintf("/dev/input/js%d", index-1), os.O_RDONLY, 0666)
 	if e != nil {
 		return
 	}
-	js = state{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
+	js = State{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
 	// start thread to read joystick eventd to the joystick.state osEvent channel
 	go eventPipe(r, js.osEvent)
 	js.populate()
@@ -98,7 +98,7 @@ func Connect(index int) (js state, e error) {
 }
 
 // fill in the joysticks available events from the synthetic state events burst produced initially by the driver.
-func (js state) populate() {
+func (js State) populate() {
 	for buttonNumber, hatNumber, axisNumber := 1, 1, 1; ; {
 		evt := <-js.osEvent
 		switch evt.Type {
@@ -134,7 +134,7 @@ func eventPipe(r io.Reader, c chan osEventRecord) {
 }
 
 // interpret whats appearing on osEvent channel, then put, on any required out channel(s), the requisite event.
-func (js state) ProcessEvents() {
+func (js State) ProcessEvents() {
 	for {
 		evt, ok := <-js.osEvent
 		if !ok {
@@ -173,25 +173,25 @@ func toDuration(m uint32) time.Duration {
 	return time.Duration(m) * 1000000
 }
 
-func (js state) OnOpen(button uint8) (c chan event) {
+func (js State) OnOpen(button uint8) (c chan event) {
 	c = make(chan event)
 	js.buttonOpenEvents[button] = c
 	return c
 }
 
-func (js state) OnClose(button uint8) (c chan event) {
+func (js State) OnClose(button uint8) (c chan event) {
 	c = make(chan event)
 	js.buttonCloseEvents[button] = c
 	return c
 }
 
-func (js state) OnMove(hatAsix uint8) (c chan event) {
+func (js State) OnMove(hatAsix uint8) (c chan event) {
 	c = make(chan event)
 	js.hatChangeEvents[hatAsix] = c
 	return c
 }
 
-func (js state) ButtonExists(button uint8) (ok bool) {
+func (js State) ButtonExists(button uint8) (ok bool) {
 	for _, v := range js.buttons {
 		if v.number == button {
 			return true
@@ -200,7 +200,7 @@ func (js state) ButtonExists(button uint8) (ok bool) {
 	return
 }
 
-func (js state) HatExists(hatAxis uint8) (ok bool) {
+func (js State) HatExists(hatAxis uint8) (ok bool) {
 	for _, v := range js.hatAxes {
 		if v.number == hatAxis {
 			return true
@@ -209,7 +209,7 @@ func (js state) HatExists(hatAxis uint8) (ok bool) {
 	return
 }
 
-func (js state) InsertSyntheticEvent(v int16, t uint8, i uint8) {
+func (js State) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	js.osEvent <- osEventRecord{Value: v, Type: t, Index: i}
 }
 

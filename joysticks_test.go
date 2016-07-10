@@ -15,9 +15,9 @@ import "math"
 
 func TestJoysticksCapture(t *testing.T) {
 	events := Capture(
-		Channel{10, state.OnOpen}, // event[0] button #10 opens
-		Channel{1, state.OnClose}, // event[1] button #1 closes
-		Channel{1, state.OnMove},  // event[2] hat #1 moves
+		Channel{10, State.OnOpen}, // event[0] button #10 opens
+		Channel{1, State.OnClose}, // event[1] button #1 closes
+		Channel{1, State.OnMove},  // event[2] hat #1 moves
 	)
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
@@ -90,5 +90,6 @@ func play(s Sound) {
 		panic(err)
 	}
 }
+
 
 
