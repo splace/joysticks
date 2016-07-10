@@ -132,9 +132,9 @@ func (js State) ButtonExists(button uint8) (ok bool) {
 	return
 }
 
-func (js State) HatExists(hatAxis uint8) (ok bool) {
+func (js State) HatExists(hat uint8) (ok bool) {
 	for _, v := range js.hatAxes {
-		if v.number == hatAxis {
+		if v.number == hat {
 			return true
 		}
 	}
