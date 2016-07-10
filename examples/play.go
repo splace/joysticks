@@ -13,7 +13,7 @@ import . "github.com/splace/sounds"
 
 func main() {
 	events := Capture(
-		Channel{10, State.OnLong}, // event[0] button #10 double pressed
+		Channel{10, State.OnLong}, // event[0] button #10 long pressed
 		Channel{1, State.OnClose}, // event[1] button #1 closes
 		Channel{1, State.OnMove},  // event[2] hat #1 moves
 	)
