@@ -63,9 +63,10 @@ func (b ButtonChangeEvent) Moment() time.Duration {
 	return b.time
 }
 
+// Register methods to be called for event index, (event type indicated by method.)
 type Channel struct {
 	Number    uint8
-	ChannelFn func(State, uint8) chan event
+	Method func(State, uint8) chan event
 }
 
 // Capture arranges for the registrees (channels) to get particular events.
@@ -78,7 +79,7 @@ func Capture(registrees ...Channel) []chan event {
 	go js.ProcessEvents()
 	chans := make([]chan event, len(registrees))
 	for i, fns := range registrees {
-		chans[i] = fns.ChannelFn(js, fns.Number)
+		chans[i] = fns.Method(js, fns.Number)
 	}
 	return chans
 }
