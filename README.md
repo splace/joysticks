@@ -9,7 +9,7 @@ Installation:
 
      go get github.com/splace/joysticks
 
-Example: play a note when pressing button #1. (button #10 to exit) hat changes frequency and volume, (y,x axes)
+Example: play a note when pressing button #1. hat position changes frequency, y axis, and volume, x axis. (button #10 to exit) 
 
 	package main
 
