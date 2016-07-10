@@ -28,8 +28,8 @@ func TestJoysticksCapture(t *testing.T) {
 		case <-events[1]:
 			play(NewSound(NewTone(f, float64(x)), time.Second/3))
 		case h := <-events[2]:
-			x = h.(HatChangeEvent).x/2 + .5
-			f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).y))) * time.Second / 44000
+			x = h.(HatChangeEvent).X/2 + .5
+			f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
 		}
 	}
 }

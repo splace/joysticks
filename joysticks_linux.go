@@ -48,7 +48,7 @@ type event interface {
 
 type HatChangeEvent struct {
 	time time.Duration
-	x, y float32
+	X,Y float32
 }
 
 func (b HatChangeEvent) Moment() time.Duration {
