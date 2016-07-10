@@ -176,22 +176,22 @@ func toDuration(m uint32) time.Duration {
 }
 
 // button goes open
-func (js State) OnOpen(button uint8) (c chan event) {
-	c = make(chan event)
+func (js State) OnOpen(button uint8) chan event {
+	c := make(chan event)
 	js.buttonOpenEvents[button] = c
 	return c
 }
 
 // button goes closed
-func (js State) OnClose(button uint8) (c chan event) {
-	c = make(chan event)
+func (js State) OnClose(button uint8) chan event {
+	c := make(chan event)
 	js.buttonCloseEvents[button] = c
 	return c
 }
 
 // axis moved
-func (js State) OnMove(hatAxis uint8) (c chan event) {
-	c = make(chan event)
+func (js State) OnMove(hatAxis uint8) chan event {
+	c := make(chan event)
 	js.hatChangeEvents[hatAxis] = c
 	return c
 }
