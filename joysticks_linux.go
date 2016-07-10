@@ -46,20 +46,20 @@ type event interface {
 	Moment() time.Duration
 }
 
-type hatChangeEvent struct {
+type HatChangeEvent struct {
 	time time.Duration
 	x, y float32
 }
 
-func (b hatChangeEvent) Moment() time.Duration {
+func (b HatChangeEvent) Moment() time.Duration {
 	return b.time
 }
 
-type buttonChangeEvent struct {
+type ButtonChangeEvent struct {
 	time time.Duration
 }
 
-func (b buttonChangeEvent) Moment() time.Duration {
+func (b ButtonChangeEvent) Moment() time.Duration {
 	return b.time
 }
 
@@ -144,12 +144,12 @@ func (js state) ProcessEvents() {
 		case 1:
 			if evt.Value == 0 {
 				if c, ok := js.buttonOpenEvents[js.buttons[evt.Index].number]; ok {
-					c <- buttonChangeEvent{toDuration(evt.Time)}
+					c <- ButtonChangeEvent{toDuration(evt.Time)}
 				}
 			}
 			if evt.Value == 1 {
 				if c, ok := js.buttonCloseEvents[js.buttons[evt.Index].number]; ok {
-					c <- buttonChangeEvent{toDuration(evt.Time)}
+					c <- ButtonChangeEvent{toDuration(evt.Time)}
 				}
 			}
 			js.buttons[evt.Index] = button{js.buttons[evt.Index].number, toDuration(evt.Time), evt.Value != 0}
@@ -157,9 +157,9 @@ func (js state) ProcessEvents() {
 			if c, ok := js.hatChangeEvents[js.hatAxes[evt.Index].number]; ok {
 				switch js.hatAxes[evt.Index].axis {
 				case 1:
-					c <- hatChangeEvent{toDuration(evt.Time), float32(evt.Value) / maxValue, js.hatAxes[evt.Index+1].value}
+					c <- HatChangeEvent{toDuration(evt.Time), float32(evt.Value) / maxValue, js.hatAxes[evt.Index+1].value}
 				case 2:
-					c <- hatChangeEvent{toDuration(evt.Time), js.hatAxes[evt.Index-1].value, float32(evt.Value) / maxValue}
+					c <- HatChangeEvent{toDuration(evt.Time), js.hatAxes[evt.Index-1].value, float32(evt.Value) / maxValue}
 				}
 			}
 			js.hatAxes[evt.Index] = hatAxis{js.hatAxes[evt.Index].number, js.hatAxes[evt.Index].axis, toDuration(evt.Time), float32(evt.Value) / maxValue}
