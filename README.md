@@ -17,17 +17,18 @@ Example: play a note when pressing button #1. (button #10 to exit) hat changes f
 		"io"
 		"os/exec"
 		"time"
+		"math"
 	)
 
 	import . "github.com/splace/joysticks"
 
 	import . "github.com/splace/sounds"
 
-	func main(){
+	func main() {
 		events := Capture(
-			channel{10, state.OnOpen}, // event[0] button #10 opens
-			channel{1, state.OnClose}, // event[1] button #1 closes
-			channel{1, state.OnMove},  // event[2] hat #1 moves
+			Channel{10, State.OnOpen}, // event[0] button #10 opens
+			Channel{1, State.OnClose}, // event[1] button #1 closes
+			Channel{1, State.OnMove},  // event[2] hat #1 moves
 		)
 		var x float32 = .5
 		var f time.Duration = time.Second / 440
@@ -38,8 +39,8 @@ Example: play a note when pressing button #1. (button #10 to exit) hat changes f
 			case <-events[1]:
 				play(NewSound(NewTone(f, float64(x)), time.Second/3))
 			case h := <-events[2]:
-				x = h.(HatChangeEvent).x/2 + .5
-				f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).y))) * time.Second / 44000
+				x = h.(HatChangeEvent).X/2 + .5
+				f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
 			}
 		}
 	}
@@ -48,15 +49,16 @@ Example: play a note when pressing button #1. (button #10 to exit) hat changes f
 		cmd := exec.Command("aplay")
 		out, in := io.Pipe()
 		go func() {
-			Encode(in, s, 44100,2)
+			Encode(in, 2, 44100, s)
 			in.Close()
 		}()
-		cmd.Stdin=out 
+		cmd.Stdin = out
 		err := cmd.Run()
 		if err != nil {
 			panic(err)
 		}
-	}
+	} 
+
 
 
 
