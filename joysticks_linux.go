@@ -63,14 +63,14 @@ func (b ButtonChangeEvent) Moment() time.Duration {
 	return b.time
 }
 
-type channel struct {
+type Channel struct {
 	number    uint8
 	channelFn func(state, uint8) chan event
 }
 
 // Capture arranges for the registrees (channels) to get particular events.
 // Intended for bacic use since doesn't return state object.
-func Capture(registrees ...channel) []chan event {
+func Capture(registrees ...Channel) []chan event {
 	js, err := Connect(1)
 	if err != nil {
 		return nil
