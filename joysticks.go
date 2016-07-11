@@ -117,7 +117,7 @@ func (js State) OnLong(button uint8) chan event {
 }
 
 // hat moved
-func (js *State) OnMove(hat uint8) chan event {
+func (js State) OnMove(hat uint8) chan event {
 	c := make(chan event)
 	js.hatChangeEvents[hat] = c
 	return c
