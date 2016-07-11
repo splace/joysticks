@@ -4,7 +4,7 @@ package joysticks
 
 import (
 	"encoding/binary"
-	"fmt"
+	"strconv"
 	"io"
 	"os"
 	"time"
@@ -44,7 +44,7 @@ func Capture(registrees ...Channel) []chan event {
 // Note: only one event, of each type '<xxx>', for each 'index', re-registering stops events going on the old channel.
 // then activate using state objects ParcelOutEvents() method.(usually in a go routine.)
 func Connect(index int) (js *State) {
-	r, e := os.OpenFile(fmt.Sprintf("/dev/input/js%d", index-1), os.O_RDWR, 0400)
+	r, e := os.OpenFile(string(strconv.AppendUint([]byte("/dev/input/js ")[0:13],uint64(index-1),10)), os.O_RDWR, 0)
 	if e != nil {
 		return nil
 	}
@@ -93,5 +93,6 @@ func eventPipe(r io.Reader, c chan osEventRecord) {
 func toDuration(m uint32) time.Duration {
 	return time.Duration(m) * 1000000
 }
+
 
 
