@@ -39,12 +39,14 @@ func Capture(registrees ...Channel) []chan event {
 	return chans
 }
 
+var inputPathSlice = []byte("/dev/input/js ")[0:13]
+
 // Connect sets up a go routine that puts a joysticks events onto registered channels.
 // register channels by using the returned state object's On<xxx>(index) methods.
 // Note: only one event, of each type '<xxx>', for each 'index', re-registering stops events going on the old channel.
 // then activate using state objects ParcelOutEvents() method.(usually in a go routine.)
 func Connect(index int) (js *State) {
-	r, e := os.OpenFile(string(strconv.AppendUint([]byte("/dev/input/js ")[0:13],uint64(index-1),10)), os.O_RDWR, 0)
+	r, e := os.OpenFile(string(strconv.AppendUint(inputPathSlice,uint64(index-1),10)), os.O_RDWR, 0)
 	if e != nil {
 		return nil
 	}
