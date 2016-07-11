@@ -3,7 +3,7 @@ Go language joystick interface.
 
 uses Linux input interface to receive events directly, no polling.
 
-then channels to pipe around events, for flexibility and multi-threading.
+then uses channels to pipe around events, for flexibility and multi-threading.
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 
