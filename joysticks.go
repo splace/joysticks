@@ -48,7 +48,7 @@ func (b ButtonChangeEvent) Moment() time.Duration {
 	return b.time
 }
 
-// start interpreting whats appearing on osEvent channel, then put, on any registered channel(s), the requisite event.
+// while its open, interpret whats on the State.OSEvent channel, then put the required event(s), on any registered channel(s).
 func (js State) ParcelOutEvents() {
 	for {
 		evt, ok := <-js.OSEvent
