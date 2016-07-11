@@ -31,7 +31,7 @@ func Capture(registrees ...Channel) []chan event {
 	if js == nil {
 		return nil
 	}
-	go js.ProcessEvents()
+	go js.ParcelOutEvents()
 	chans := make([]chan event, len(registrees))
 	for i, fns := range registrees {
 		chans[i] = fns.Method(*js, fns.Number)
@@ -50,7 +50,7 @@ func Connect(index int) (js *State) {
 	}
 	js = &State{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
 	// start thread to read joystick events to the joystick.state osEvent channel
-	go eventPipe(r, js.osEvent)
+	go eventPipe(r, js.OSEvent)
 	js.populate()
 	return js
 }
@@ -58,7 +58,7 @@ func Connect(index int) (js *State) {
 // fill in the joysticks available events from the synthetic state events burst produced initially by the driver.
 func (js State) populate() {
 	for buttonNumber, hatNumber, axisNumber := 1, 1, 1; ; {
-		evt := <-js.osEvent
+		evt := <-js.OSEvent
 		switch evt.Type {
 		case 0x81:
 			js.buttons[evt.Index] = button{uint8(buttonNumber), toDuration(evt.Time), evt.Value != 0}
@@ -71,7 +71,7 @@ func (js State) populate() {
 				hatNumber += 1
 			}
 		default:
-			go func() { js.osEvent <- evt }() // put the consumed, first, after end of synthetic burst, real event, back on channel.
+			go func() { js.OSEvent <- evt }() // put the consumed, first, after end of synthetic burst, real event, back on channel.
 			return
 		}
 	}

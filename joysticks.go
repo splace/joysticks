@@ -51,7 +51,7 @@ func (b ButtonChangeEvent) Moment() time.Duration {
 // start interpreting whats appearing on osEvent channel, then put, on any registered channel(s), the requisite event.
 func (js State) ParcelOutEvents() {
 	for {
-		evt, ok := <-js.osEvent
+		evt, ok := <-js.OSEvent
 		if !ok {
 			break
 		}
@@ -142,5 +142,5 @@ func (js State) HatExists(hat uint8) (ok bool) {
 }
 
 func (js State) InsertSyntheticEvent(v int16, t uint8, i uint8) {
-	js.osEvent <- osEventRecord{Value: v, Type: t, Index: i}
+	js.OSEvent <- osEventRecord{Value: v, Type: t, Index: i}
 }
