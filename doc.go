@@ -17,6 +17,20 @@ event 'Moment' returns whatever the underlying Linux driver provides as the even
 
 hat channel event provides current position, (x,y) the event will need casting to the hat event to access these. (with only one axis changing per event.)
 
+or (DIY)
+
+'Connect' to a joystick by index number
+
+handle all events directly using the returned State's OSEvent channel.
+
 */
 package joysticks
+/*
 
+could be used with little change on any linux 'input' 
+
+relies on initial event state burst to setup available events register.
+
+linux driver doesn't allow blocking other programs from read from the same device, but they dont consume.
+
+*/

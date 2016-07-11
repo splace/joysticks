@@ -18,7 +18,7 @@ type button struct {
 }
 
 type State struct {
-	osEvent           chan osEventRecord
+	OSEvent           chan osEventRecord
 	buttons           map[uint8]button
 	hatAxes           map[uint8]hatAxis
 	buttonCloseEvents map[uint8]chan event
@@ -89,7 +89,7 @@ func (js State) ProcessEvents() {
 	}
 }
 
-// Register methods to be called for event index, (event type indicated by method.)
+// Type of registerable methods and the index they are called with. (Note: the event type is indicated by the method.)
 type Channel struct {
 	Number    uint8
 	Method func(State, uint8) chan event
