@@ -18,13 +18,13 @@ type button struct {
 }
 
 type State struct {
-	OSEvent           chan osEventRecord
-	buttons           map[uint8]button
-	hatAxes           map[uint8]hatAxis
-	buttonCloseEvents map[uint8]chan event
-	buttonOpenEvents  map[uint8]chan event
-	buttonLongPressEvents  map[uint8]chan event
-	hatChangeEvents   map[uint8]chan event
+	OSEvent               chan osEventRecord
+	buttons               map[uint8]button
+	hatAxes               map[uint8]hatAxis
+	buttonCloseEvents     map[uint8]chan event
+	buttonOpenEvents      map[uint8]chan event
+	buttonLongPressEvents map[uint8]chan event
+	hatChangeEvents       map[uint8]chan event
 }
 
 type event interface {
@@ -33,7 +33,7 @@ type event interface {
 
 type HatChangeEvent struct {
 	time time.Duration
-	X,Y float32
+	X, Y float32
 }
 
 func (b HatChangeEvent) Moment() time.Duration {
@@ -49,7 +49,7 @@ func (b ButtonChangeEvent) Moment() time.Duration {
 }
 
 // start interpreting whats appearing on osEvent channel, then put, on any registered channel(s), the requisite event.
-func (js State) ProcessEvents() {
+func (js State) ParcelOutEvents() {
 	for {
 		evt, ok := <-js.osEvent
 		if !ok {
@@ -62,7 +62,7 @@ func (js State) ProcessEvents() {
 					c <- ButtonChangeEvent{toDuration(evt.Time)}
 				}
 				if c, ok := js.buttonLongPressEvents[js.buttons[evt.Index].number]; ok {
-					if toDuration(evt.Time)>js.buttons[evt.Index].time+time.Second{
+					if toDuration(evt.Time) > js.buttons[evt.Index].time+time.Second {
 						c <- ButtonChangeEvent{toDuration(evt.Time)}
 					}
 				}
@@ -91,7 +91,7 @@ func (js State) ProcessEvents() {
 
 // Type of registerable methods and the index they are called with. (Note: the event type is indicated by the method.)
 type Channel struct {
-	Number    uint8
+	Number uint8
 	Method func(State, uint8) chan event
 }
 
@@ -109,7 +109,7 @@ func (js State) OnClose(button uint8) chan event {
 	return c
 }
 
-// button goes open and last event on it, closed, wasn't recent. (within 1 second) 
+// button goes open and last event on it, closed, wasn't recent. (within 1 second)
 func (js State) OnLong(button uint8) chan event {
 	c := make(chan event)
 	js.buttonLongPressEvents[button] = c
@@ -144,5 +144,3 @@ func (js State) HatExists(hat uint8) (ok bool) {
 func (js State) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	js.osEvent <- osEventRecord{Value: v, Type: t, Index: i}
 }
-
-

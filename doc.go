@@ -9,7 +9,7 @@ usage:
 
 or (more flexible)
 
-'Connect' to a joystick by index number, then use methods to add event channels, one for each button or hat, and start running by calling 'ProcessEvents'.
+'Connect' to a joystick by index number, then use methods to add event channels, one for each button or hat, and start running by calling 'ParcelOutEvents'.
 
 event channels provide at least time. event is an interface with a 'Moment' method which returns a time.Duration.
 

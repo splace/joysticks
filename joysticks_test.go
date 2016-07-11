@@ -68,7 +68,7 @@ func TestJoysticksMutipleCapture(t *testing.T) {
 }
 
 func TestJoysticksAdvanced(t *testing.T) {
-	js1:= Connect(1)
+	js1 := Connect(1)
 
 	if js1 == nil {
 		panic("no joysticks")
@@ -85,7 +85,7 @@ func TestJoysticksAdvanced(t *testing.T) {
 	h1 := js1.OnMove(1)
 	h2 := js1.OnMove(2)
 	h3 := js1.OnMove(3)
-	go js1.ProcessEvents()
+	go js1.ParcelOutEvents()
 	time.AfterFunc(time.Second*10, func() { js1.InsertSyntheticEvent(1, 1, 1) }) // value=1 (close),type=1 (button), index=1, so fires b1 after 10 seconds
 
 	for {
@@ -123,6 +123,5 @@ func play(s Sound) {
 		panic(err)
 	}
 }
-
 
 
