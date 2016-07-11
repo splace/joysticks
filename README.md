@@ -27,7 +27,7 @@ Example: play a note when pressing button #1. hat position changes frequency, y 
 	import . "github.com/splace/sounds"
 
 	func main() {
-		events := Capture(
+		jsevents := Capture(
 			Channel{10, State.OnLong}, // events[0] button #10 long pressed
 			Channel{1, State.OnClose}, // events[1] button #1 closes
 			Channel{1, State.OnMove},  // events[2] hat #1 moves
@@ -36,11 +36,11 @@ Example: play a note when pressing button #1. hat position changes frequency, y 
 		var f time.Duration = time.Second / 440
 		for {
 			select {
-			case <-events[0]:
+			case <-jsevents[0]:
 				return
-			case <-events[1]:
+			case <-jsevents[1]:
 				play(NewSound(NewTone(f, float64(x)), time.Second/3))
-			case h := <-events[2]:
+			case h := <-jsevents[2]:
 				x = h.(HatChangeEvent).X/2 + .5
 				f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
 			}
