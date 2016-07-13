@@ -15,9 +15,9 @@ import "math"
 
 func TestJoysticksCapture(t *testing.T) {
 	events := Capture(
-		Channel{10, State.OnLong}, // event[0] button #10 long pressed
-		Channel{1, State.OnClose}, // event[1] button #1 closes
-		Channel{1, State.OnMove},  // event[2] hat #1 moves
+		Channel{10, Joystick.OnLong}, // event[0] button #10 long pressed
+		Channel{1, Joystick.OnClose}, // event[1] button #1 closes
+		Channel{1, Joystick.OnMove},  // event[2] hat #1 moves
 	)
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
@@ -36,14 +36,14 @@ func TestJoysticksCapture(t *testing.T) {
 
 func TestJoysticksMutipleCapture(t *testing.T) {
 	events1 := Capture(
-		Channel{10, State.OnLong}, // event[0] button #10 long pressed
-		Channel{1, State.OnClose}, // event[1] button #1 closes
-		Channel{1, State.OnMove},  // event[2] hat #1 moves
+		Channel{10, Joystick.OnLong}, // event[0] button #10 long pressed
+		Channel{1, Joystick.OnClose}, // event[1] button #1 closes
+		Channel{1, Joystick.OnMove},  // event[2] hat #1 moves
 	)
 	events2 := Capture(
-		Channel{10, State.OnLong}, // event[0] button #10 long pressed
-		Channel{1, State.OnClose}, // event[1] button #1 closes
-		Channel{1, State.OnMove},  // event[2] hat #1 moves
+		Channel{10, Joystick.OnLong}, // event[0] button #10 long pressed
+		Channel{1, Joystick.OnClose}, // event[1] button #1 closes
+		Channel{1, Joystick.OnMove},  // event[2] hat #1 moves
 	)
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
@@ -123,5 +123,3 @@ func play(s Sound) {
 		panic(err)
 	}
 }
-
-

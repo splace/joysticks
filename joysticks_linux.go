@@ -4,9 +4,9 @@ package joysticks
 
 import (
 	"encoding/binary"
-	"strconv"
 	"io"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -45,12 +45,12 @@ var inputPathSlice = []byte("/dev/input/js ")[0:13]
 // register channels by using the returned state object's On<xxx>(index) methods.
 // Note: only one event, of each type '<xxx>', for each 'index', re-registering stops events going on the old channel.
 // then activate using state objects ParcelOutEvents() method.(usually in a go routine.)
-func Connect(index int) (js *State) {
-	r, e := os.OpenFile(string(strconv.AppendUint(inputPathSlice,uint64(index-1),10)), os.O_RDWR, 0)
+func Connect(index int) (js *Joystick) {
+	r, e := os.OpenFile(string(strconv.AppendUint(inputPathSlice, uint64(index-1), 10)), os.O_RDWR, 0)
 	if e != nil {
 		return nil
 	}
-	js = &State{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
+	js = &Joystick{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
 	// start thread to read joystick events to the joystick.state osEvent channel
 	go eventPipe(r, js.OSEvent)
 	js.populate()
@@ -58,7 +58,7 @@ func Connect(index int) (js *State) {
 }
 
 // fill in the joysticks available events from the synthetic state events burst produced initially by the driver.
-func (js State) populate() {
+func (js Joystick) populate() {
 	for buttonNumber, hatNumber, axisNumber := 1, 1, 1; ; {
 		evt := <-js.OSEvent
 		switch evt.Type {
@@ -77,7 +77,6 @@ func (js State) populate() {
 			return
 		}
 	}
-	return
 }
 
 // pipe any readable events onto channel.
@@ -95,6 +94,3 @@ func eventPipe(r io.Reader, c chan osEventRecord) {
 func toDuration(m uint32) time.Duration {
 	return time.Duration(m) * 1000000
 }
-
-
-

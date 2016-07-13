@@ -17,7 +17,8 @@ type button struct {
 	value  bool
 }
 
-type State struct {
+//Joystick holds the in-coming event channel, mappings, and registered events for a joystick, and has methods to control and adjust behaviour.
+type Joystick struct {
 	OSEvent               chan osEventRecord
 	buttons               map[uint8]button
 	hatAxes               map[uint8]hatAxis
@@ -48,8 +49,8 @@ func (b ButtonChangeEvent) Moment() time.Duration {
 	return b.time
 }
 
-// while its open, interpret whats on the State.OSEvent channel, then put the required event(s), on any registered channel(s).
-func (js State) ParcelOutEvents() {
+// ParcelOutEvents interprets whats on the State.OSEvent channel, then puts the required event(s), on any registered channel(s).
+func (js Joystick) ParcelOutEvents() {
 	for {
 		evt, ok := <-js.OSEvent
 		if !ok {
@@ -92,38 +93,38 @@ func (js State) ParcelOutEvents() {
 // Type of registerable methods and the index they are called with. (Note: the event type is indicated by the method.)
 type Channel struct {
 	Number uint8
-	Method func(State, uint8) chan event
+	Method func(Joystick, uint8) chan event
 }
 
 // button goes open
-func (js State) OnOpen(button uint8) chan event {
+func (js Joystick) OnOpen(button uint8) chan event {
 	c := make(chan event)
 	js.buttonOpenEvents[button] = c
 	return c
 }
 
 // button goes closed
-func (js State) OnClose(button uint8) chan event {
+func (js Joystick) OnClose(button uint8) chan event {
 	c := make(chan event)
 	js.buttonCloseEvents[button] = c
 	return c
 }
 
 // button goes open and last event on it, closed, wasn't recent. (within 1 second)
-func (js State) OnLong(button uint8) chan event {
+func (js Joystick) OnLong(button uint8) chan event {
 	c := make(chan event)
 	js.buttonLongPressEvents[button] = c
 	return c
 }
 
 // hat moved
-func (js State) OnMove(hat uint8) chan event {
+func (js Joystick) OnMove(hat uint8) chan event {
 	c := make(chan event)
 	js.hatChangeEvents[hat] = c
 	return c
 }
 
-func (js State) ButtonExists(button uint8) (ok bool) {
+func (js Joystick) ButtonExists(button uint8) (ok bool) {
 	for _, v := range js.buttons {
 		if v.number == button {
 			return true
@@ -132,7 +133,7 @@ func (js State) ButtonExists(button uint8) (ok bool) {
 	return
 }
 
-func (js State) HatExists(hat uint8) (ok bool) {
+func (js Joystick) HatExists(hat uint8) (ok bool) {
 	for _, v := range js.hatAxes {
 		if v.number == hat {
 			return true
@@ -141,6 +142,6 @@ func (js State) HatExists(hat uint8) (ok bool) {
 	return
 }
 
-func (js State) InsertSyntheticEvent(v int16, t uint8, i uint8) {
+func (js Joystick) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	js.OSEvent <- osEventRecord{Value: v, Type: t, Index: i}
 }
