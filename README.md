@@ -28,9 +28,9 @@ Example: play a note when pressing button #1. hat position changes frequency, y 
 
 	func main() {
 		jsevents := Capture(
-			Channel{10, State.OnLong}, // events[0] button #10 long pressed
-			Channel{1, State.OnClose}, // events[1] button #1 closes
-			Channel{1, State.OnMove},  // events[2] hat #1 moves
+			Channel{10, Joystick.OnLong}, // events[0] button #10 long pressed
+			Channel{1, Joystick.OnClose}, // events[1] button #1 closes
+			Channel{1, Joystick.OnMove},  // events[2] hat #1 moves
 		)
 		var x float32 = .5
 		var f time.Duration = time.Second / 440

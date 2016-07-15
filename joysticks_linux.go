@@ -44,13 +44,13 @@ var inputPathSlice = []byte("/dev/input/js ")[0:13]
 // Connect sets up a go routine that puts a joysticks events onto registered channels.
 // register channels by using the returned state object's On<xxx>(index) methods.
 // Note: only one event, of each type '<xxx>', for each 'index', re-registering stops events going on the old channel.
-// then activate using state objects ParcelOutEvents() method.(usually in a go routine.)
+// then activate using state objects ParcelOutEvents() method.(blocking.)
 func Connect(index int) (js *Joystick) {
 	r, e := os.OpenFile(string(strconv.AppendUint(inputPathSlice, uint64(index-1), 10)), os.O_RDWR, 0)
 	if e != nil {
 		return nil
 	}
-	js = &Joystick{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
+	js = &Joystick{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
 	// start thread to read joystick events to the joystick.state osEvent channel
 	go eventPipe(r, js.OSEvent)
 	js.populate()

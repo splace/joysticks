@@ -17,7 +17,8 @@ func TestJoysticksCapture(t *testing.T) {
 	events := Capture(
 		Channel{10, Joystick.OnLong}, // event[0] button #10 long pressed
 		Channel{1, Joystick.OnClose}, // event[1] button #1 closes
-		Channel{1, Joystick.OnMove},  // event[2] hat #1 moves
+		Channel{1, Joystick.OnRotate},  // event[2] hat #1 rotates
+		Channel{2, Joystick.OnRotate},  // event[2] hat #1 rotates
 	)
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
@@ -28,8 +29,10 @@ func TestJoysticksCapture(t *testing.T) {
 		case <-events[1]:
 			play(NewSound(NewTone(f, float64(x)), time.Second/3))
 		case h := <-events[2]:
-			x = h.(HatChangeEvent).X/2 + .5
-			f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
+			fmt.Println(h.(HatAngleEvent).Angle)
+			x = h.(HatAngleEvent).Angle/6.28 + .5
+		case h := <-events[3]:
+			f = time.Duration(100*math.Pow(2, float64(h.(HatAngleEvent).Angle)/6.28)) * time.Second / 44000
 		}
 	}
 }
@@ -58,11 +61,11 @@ func TestJoysticksMutipleCapture(t *testing.T) {
 		case <-events2[1]:
 			play(NewSound(NewTone(f, float64(x)), time.Second/3))
 		case h := <-events1[2]:
-			x = h.(HatChangeEvent).X/2 + .5
-			f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
+			x = h.(HatPositionEvent).X/2 + .5
+			f = time.Duration(100*math.Pow(2, float64(h.(HatPositionEvent).Y))) * time.Second / 44000
 		case h := <-events2[2]:
-			x = h.(HatChangeEvent).X/2 + .5
-			f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
+			x = h.(HatPositionEvent).X/2 + .5
+			f = time.Duration(100*math.Pow(2, float64(h.(HatPositionEvent).Y))) * time.Second / 44000
 		}
 	}
 }
@@ -83,7 +86,8 @@ func TestJoysticksAdvanced(t *testing.T) {
 	b4 := js1.OnClose(4)
 	quit := js1.OnOpen(10)
 	h1 := js1.OnMove(1)
-	h2 := js1.OnMove(2)
+	h4 := js1.OnPanX(2)
+	h5 := js1.OnPanY(2)
 	h3 := js1.OnMove(3)
 	go js1.ParcelOutEvents()
 	time.AfterFunc(time.Second*10, func() { js1.InsertSyntheticEvent(1, 1, 1) }) // value=1 (close),type=1 (button), index=1, so fires b1 after 10 seconds
@@ -102,10 +106,12 @@ func TestJoysticksAdvanced(t *testing.T) {
 			play(NewSound(NewTone(time.Second/150, 1), time.Second/3))
 		case h := <-h1:
 			fmt.Println("hat 1 moved", h)
-		case h := <-h2:
-			fmt.Println("hat 2 moved", h)
 		case h := <-h3:
 			fmt.Println("hat 3 moved", h)
+		case h := <-h4:
+			fmt.Println("hat 2 X moved", h.(HatPanXEvent).V)
+		case h := <-h5:
+			fmt.Println("hat 2 Y moved", h)
 		}
 	}
 }

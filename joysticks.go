@@ -2,6 +2,7 @@ package joysticks
 
 import (
 	"time"
+	"math"
 )
 
 type hatAxis struct {
@@ -25,67 +26,103 @@ type Joystick struct {
 	buttonCloseEvents     map[uint8]chan event
 	buttonOpenEvents      map[uint8]chan event
 	buttonLongPressEvents map[uint8]chan event
-	hatChangeEvents       map[uint8]chan event
+	hatPanXEvents         map[uint8]chan event
+	hatPanYEvents         map[uint8]chan event
+	hatPositionEvents     map[uint8]chan event
+	hatAngleEvents        map[uint8]chan event
 }
 
 type event interface {
 	Moment() time.Duration
 }
 
-type HatChangeEvent struct {
+type when struct {
 	time time.Duration
+}
+
+func (b when) Moment() time.Duration {
+	return b.time
+}
+
+type HatPositionEvent struct {
+	when
 	X, Y float32
 }
 
-func (b HatChangeEvent) Moment() time.Duration {
-	return b.time
-}
-
 type ButtonChangeEvent struct {
-	time time.Duration
+	when
 }
 
-func (b ButtonChangeEvent) Moment() time.Duration {
-	return b.time
+type HatPanXEvent struct {
+	when
+	V float32
+}
+
+type HatPanYEvent struct {
+	when
+	V float32
+}
+
+type HatAngleEvent struct {
+	when
+	Angle float32
 }
 
 // ParcelOutEvents interprets whats on the State.OSEvent channel, then puts the required event(s), on any registered channel(s).
 func (js Joystick) ParcelOutEvents() {
 	for {
-		evt, ok := <-js.OSEvent
-		if !ok {
-			break
-		}
-		switch evt.Type {
-		case 1:
-			if evt.Value == 0 {
-				if c, ok := js.buttonOpenEvents[js.buttons[evt.Index].number]; ok {
-					c <- ButtonChangeEvent{toDuration(evt.Time)}
-				}
-				if c, ok := js.buttonLongPressEvents[js.buttons[evt.Index].number]; ok {
-					if toDuration(evt.Time) > js.buttons[evt.Index].time+time.Second {
-						c <- ButtonChangeEvent{toDuration(evt.Time)}
+		if evt, ok := <-js.OSEvent; ok {
+			switch evt.Type {
+			case 1:
+				if evt.Value == 0 {
+					if c, ok := js.buttonOpenEvents[js.buttons[evt.Index].number]; ok {
+						c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
+					}
+					if c, ok := js.buttonLongPressEvents[js.buttons[evt.Index].number]; ok {
+						if toDuration(evt.Time) > js.buttons[evt.Index].time+time.Second {
+							c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
+						}
 					}
 				}
-			}
-			if evt.Value == 1 {
-				if c, ok := js.buttonCloseEvents[js.buttons[evt.Index].number]; ok {
-					c <- ButtonChangeEvent{toDuration(evt.Time)}
+				if evt.Value == 1 {
+					if c, ok := js.buttonCloseEvents[js.buttons[evt.Index].number]; ok {
+						c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
+					}
 				}
-			}
-			js.buttons[evt.Index] = button{js.buttons[evt.Index].number, toDuration(evt.Time), evt.Value != 0}
-		case 2:
-			if c, ok := js.hatChangeEvents[js.hatAxes[evt.Index].number]; ok {
+				js.buttons[evt.Index] = button{js.buttons[evt.Index].number, toDuration(evt.Time), evt.Value != 0}
+			case 2:
 				switch js.hatAxes[evt.Index].axis {
 				case 1:
-					c <- HatChangeEvent{toDuration(evt.Time), float32(evt.Value) / maxValue, js.hatAxes[evt.Index+1].value}
+					if c, ok := js.hatPanXEvents[js.hatAxes[evt.Index].number]; ok {
+						c <- HatPanXEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue}
+					}
 				case 2:
-					c <- HatChangeEvent{toDuration(evt.Time), js.hatAxes[evt.Index-1].value, float32(evt.Value) / maxValue}
+					if c, ok := js.hatPanYEvents[js.hatAxes[evt.Index].number]; ok {
+						c <- HatPanYEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue}
+					}
 				}
+				if c, ok := js.hatPositionEvents[js.hatAxes[evt.Index].number]; ok {
+					switch js.hatAxes[evt.Index].axis {
+					case 1:
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue, js.hatAxes[evt.Index+1].value}
+					case 2:
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, js.hatAxes[evt.Index-1].value, float32(evt.Value) / maxValue}
+					}
+				}
+				if c, ok := js.hatAngleEvents[js.hatAxes[evt.Index].number]; ok {
+					switch js.hatAxes[evt.Index].axis {
+					case 1:
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(evt.Value),float64(js.hatAxes[evt.Index+1].value)))}
+					case 2:
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(js.hatAxes[evt.Index-1].value), float64(evt.Value) / maxValue))}
+					}
+				}
+				js.hatAxes[evt.Index] = hatAxis{js.hatAxes[evt.Index].number, js.hatAxes[evt.Index].axis, toDuration(evt.Time), float32(evt.Value) / maxValue}
+			default:
+				// log.Println("unknown input type. ",evt.Type & 0x7f)
 			}
-			js.hatAxes[evt.Index] = hatAxis{js.hatAxes[evt.Index].number, js.hatAxes[evt.Index].axis, toDuration(evt.Time), float32(evt.Value) / maxValue}
-		default:
-			// log.Println("unknown input type. ",evt.Type & 0x7f)
+		} else {
+			break
 		}
 	}
 }
@@ -120,7 +157,28 @@ func (js Joystick) OnLong(button uint8) chan event {
 // hat moved
 func (js Joystick) OnMove(hat uint8) chan event {
 	c := make(chan event)
-	js.hatChangeEvents[hat] = c
+	js.hatPositionEvents[hat] = c
+	return c
+}
+
+// hat axis-X moved
+func (js Joystick) OnPanX(hat uint8) chan event {
+	c := make(chan event)
+	js.hatPanXEvents[hat] = c
+	return c
+}
+
+// hat axis-Y moved
+func (js Joystick) OnPanY(hat uint8) chan event {
+	c := make(chan event)
+	js.hatPanYEvents[hat] = c
+	return c
+}
+
+// hat axis-Y moved
+func (js Joystick) OnRotate(hat uint8) chan event {
+	c := make(chan event)
+	js.hatAngleEvents[hat] = c
 	return c
 }
 
