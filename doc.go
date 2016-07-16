@@ -9,7 +9,7 @@ usage:
 
 or (more flexible)
 
-'Connect' to a joystick by index number, then use methods to add event channels, one for each button or hat, and start running by calling 'ParcelOutEvents'.
+'Connect' to a HID by index number, then use methods to add event channels, one for each button or hat, and start running by calling 'ParcelOutEvents'.
 
 event, an interface with a 'Moment' method, provides a time.Duration. Moment() returns whatever the underlying Linux driver provides as the events timestamp, in time.Duration.
 
@@ -17,9 +17,9 @@ hat channel event provides current position, (x,y) the event will need casting t
 
 or (DIY)
 
-'Connect' to a joystick by index number
+'Connect' to a HID by index number
 
-handle all events directly using the returned Joystick's OSEvent channel.
+handle all events directly using the returned HID's OSEvent channel.
 
 */
 package joysticks
