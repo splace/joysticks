@@ -13,7 +13,7 @@ import (
 )
 import "math"
 
-func TestJoysticksCapture(t *testing.T) {
+func TestHIDsCapture(t *testing.T) {
 	events := Capture(
 		Channel{10, HID.OnLong},  // event[0] button #10 long pressed
 		Channel{1, HID.OnClose},  // event[1] button #1 closes
@@ -37,7 +37,7 @@ func TestJoysticksCapture(t *testing.T) {
 	}
 }
 
-func TestJoysticksMutipleCapture(t *testing.T) {
+func TestHIDsMutipleCapture(t *testing.T) {
 	events1 := Capture(
 		Channel{10, HID.OnLong}, // event[0] button #10 long pressed
 		Channel{1, HID.OnClose}, // event[1] button #1 closes
@@ -70,14 +70,14 @@ func TestJoysticksMutipleCapture(t *testing.T) {
 	}
 }
 
-func TestJoysticksAdvanced(t *testing.T) {
+func TestHIDsAdvanced(t *testing.T) {
 	js1 := Connect(1)
 
 	if js1 == nil {
-		panic("no joysticks")
+		panic("no HIDs")
 	}
 	if len(js1.buttons) < 10 || len(js1.hatAxes) < 6 {
-		t.Errorf("joystick#1, available buttons %d, Hats %d\n", len(js1.buttons), len(js1.hatAxes)/2)
+		t.Errorf("HID#1, available buttons %d, Hats %d\n", len(js1.buttons), len(js1.hatAxes)/2)
 	}
 
 	b1 := js1.OnClose(1)

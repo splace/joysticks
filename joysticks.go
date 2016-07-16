@@ -68,7 +68,7 @@ type HatAngleEvent struct {
 	Angle float32
 }
 
-// ParcelOutEvents interprets whats on the State.OSEvent channel, then puts the required event(s), on any registered channel(s).
+// ParcelOutEvents interprets waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
 func (h HID) ParcelOutEvents() {
 	for {
 		if evt, ok := <-h.OSEvent; ok {
