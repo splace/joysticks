@@ -24,12 +24,3 @@ handle all events directly using the returned HID's OSEvent channel.
 */
 package joysticks
 
-/*
-
-could be used with little change on any linux 'input'
-
-relies on initial event state burst to setup available events register.
-
-linux driver doesn't allow blocking other programs from read from the same device, but they dont consume.
-
-*/

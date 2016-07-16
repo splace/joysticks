@@ -69,55 +69,57 @@ type HatAngleEvent struct {
 }
 
 // ParcelOutEvents interprets waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
-func (h HID) ParcelOutEvents() {
+func (d HID) ParcelOutEvents() {
 	for {
-		if evt, ok := <-h.OSEvent; ok {
+		if evt, ok := <-d.OSEvent; ok {
 			switch evt.Type {
 			case 1:
+				b:=d.buttons[evt.Index]
 				if evt.Value == 0 {
-					if c, ok := h.buttonOpenEvents[h.buttons[evt.Index].number]; ok {
+					if c, ok := d.buttonOpenEvents[b.number]; ok {
 						c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
 					}
-					if c, ok := h.buttonLongPressEvents[h.buttons[evt.Index].number]; ok {
-						if toDuration(evt.Time) > h.buttons[evt.Index].time+time.Second {
+					if c, ok := d.buttonLongPressEvents[b.number]; ok {
+						if toDuration(evt.Time) > b.time+time.Second {
 							c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
 						}
 					}
 				}
 				if evt.Value == 1 {
-					if c, ok := h.buttonCloseEvents[h.buttons[evt.Index].number]; ok {
+					if c, ok := d.buttonCloseEvents[b.number]; ok {
 						c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
 					}
 				}
-				h.buttons[evt.Index] = button{h.buttons[evt.Index].number, toDuration(evt.Time), evt.Value != 0}
+				d.buttons[evt.Index] = button{b.number, toDuration(evt.Time), evt.Value != 0}
 			case 2:
-				switch h.hatAxes[evt.Index].axis {
+				h:=d.hatAxes[evt.Index]
+				switch h.axis {
 				case 1:
-					if c, ok := h.hatPanXEvents[h.hatAxes[evt.Index].number]; ok {
+					if c, ok := d.hatPanXEvents[h.number]; ok {
 						c <- HatPanXEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue}
 					}
 				case 2:
-					if c, ok := h.hatPanYEvents[h.hatAxes[evt.Index].number]; ok {
+					if c, ok := d.hatPanYEvents[h.number]; ok {
 						c <- HatPanYEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue}
 					}
 				}
-				if c, ok := h.hatPositionEvents[h.hatAxes[evt.Index].number]; ok {
-					switch h.hatAxes[evt.Index].axis {
+				if c, ok := d.hatPositionEvents[h.number]; ok {
+					switch d.hatAxes[evt.Index].axis {
 					case 1:
-						c <- HatPositionEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue, h.hatAxes[evt.Index+1].value}
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue, d.hatAxes[evt.Index+1].value}
 					case 2:
-						c <- HatPositionEvent{when{toDuration(evt.Time)}, h.hatAxes[evt.Index-1].value, float32(evt.Value) / maxValue}
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, d.hatAxes[evt.Index-1].value, float32(evt.Value) / maxValue}
 					}
 				}
-				if c, ok := h.hatAngleEvents[h.hatAxes[evt.Index].number]; ok {
-					switch h.hatAxes[evt.Index].axis {
+				if c, ok := d.hatAngleEvents[h.number]; ok {
+					switch d.hatAxes[evt.Index].axis {
 					case 1:
-						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(evt.Value), float64(h.hatAxes[evt.Index+1].value)))}
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(evt.Value), float64(d.hatAxes[evt.Index+1].value)))}
 					case 2:
-						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(h.hatAxes[evt.Index-1].value), float64(evt.Value)/maxValue))}
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.hatAxes[evt.Index-1].value), float64(evt.Value)/maxValue))}
 					}
 				}
-				h.hatAxes[evt.Index] = hatAxis{h.hatAxes[evt.Index].number, h.hatAxes[evt.Index].axis, toDuration(evt.Time), float32(evt.Value) / maxValue}
+				d.hatAxes[evt.Index] = hatAxis{h.number, h.axis, toDuration(evt.Time), float32(evt.Value) / maxValue}
 			default:
 				// log.Println("unknown input type. ",evt.Type & 0x7f)
 			}
@@ -127,63 +129,63 @@ func (h HID) ParcelOutEvents() {
 	}
 }
 
-// Type of registerable methods and the index they are called with. (Note: the event type is indicated by the method.)
+// Type of registerable methods and the index they are called witd. (Note: the event type is indicated by the method.)
 type Channel struct {
 	Number uint8
 	Method func(HID, uint8) chan event
 }
 
 // button goes open
-func (h HID) OnOpen(button uint8) chan event {
+func (d HID) OnOpen(button uint8) chan event {
 	c := make(chan event)
-	h.buttonOpenEvents[button] = c
+	d.buttonOpenEvents[button] = c
 	return c
 }
 
 // button goes closed
-func (h HID) OnClose(button uint8) chan event {
+func (d HID) OnClose(button uint8) chan event {
 	c := make(chan event)
-	h.buttonCloseEvents[button] = c
+	d.buttonCloseEvents[button] = c
 	return c
 }
 
 // button goes open and last event on it, closed, wasn't recent. (within 1 second)
-func (h HID) OnLong(button uint8) chan event {
+func (d HID) OnLong(button uint8) chan event {
 	c := make(chan event)
-	h.buttonLongPressEvents[button] = c
+	d.buttonLongPressEvents[button] = c
 	return c
 }
 
 // hat moved
-func (h HID) OnMove(hat uint8) chan event {
+func (d HID) OnMove(hat uint8) chan event {
 	c := make(chan event)
-	h.hatPositionEvents[hat] = c
+	d.hatPositionEvents[hat] = c
 	return c
 }
 
 // hat axis-X moved
-func (h HID) OnPanX(hat uint8) chan event {
+func (d HID) OnPanX(hat uint8) chan event {
 	c := make(chan event)
-	h.hatPanXEvents[hat] = c
+	d.hatPanXEvents[hat] = c
 	return c
 }
 
 // hat axis-Y moved
-func (h HID) OnPanY(hat uint8) chan event {
+func (d HID) OnPanY(hat uint8) chan event {
 	c := make(chan event)
-	h.hatPanYEvents[hat] = c
+	d.hatPanYEvents[hat] = c
 	return c
 }
 
 // hat axis-Y moved
-func (h HID) OnRotate(hat uint8) chan event {
+func (d HID) OnRotate(hat uint8) chan event {
 	c := make(chan event)
-	h.hatAngleEvents[hat] = c
+	d.hatAngleEvents[hat] = c
 	return c
 }
 
-func (h HID) ButtonExists(button uint8) (ok bool) {
-	for _, v := range h.buttons {
+func (d HID) ButtonExists(button uint8) (ok bool) {
+	for _, v := range d.buttons {
 		if v.number == button {
 			return true
 		}
@@ -191,8 +193,8 @@ func (h HID) ButtonExists(button uint8) (ok bool) {
 	return
 }
 
-func (h HID) HatExists(hat uint8) (ok bool) {
-	for _, v := range h.hatAxes {
+func (d HID) HatExists(hat uint8) (ok bool) {
+	for _, v := range d.hatAxes {
 		if v.number == hat {
 			return true
 		}
@@ -200,6 +202,6 @@ func (h HID) HatExists(hat uint8) (ok bool) {
 	return
 }
 
-func (h HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
-	h.OSEvent <- osEventRecord{Value: v, Type: t, Index: i}
+func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
+	d.OSEvent <- osEventRecord{Value: v, Type: t, Index: i}
 }
