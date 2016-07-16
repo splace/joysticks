@@ -21,7 +21,7 @@ type osEventRecord struct {
 const maxValue = 1<<15 - 1
 
 // Capture returns a chan, for each registree, getting the events the registree indicates.
-// Finds the first unused joystick, from a max of 4.
+// Finds the first unused device, from a max of 4.
 // Intended for bacic use since doesn't return state object.
 func Capture(registrees ...Channel) []chan event {
 	h := Connect(1)
@@ -41,7 +41,7 @@ func Capture(registrees ...Channel) []chan event {
 
 var inputPathSlice = []byte("/dev/input/js ")[0:13]
 
-// Connect sets up a go routine that puts a joysticks events onto registered channels.
+// Connect sets up a go routine that puts a devices events onto registered channels.
 // register channels by using the returned state object's On<xxx>(index) methods.
 // Note: only one event, of each type '<xxx>', for each 'index', re-registering stops events going on the old channel.
 // then activate using state objects ParcelOutEvents() method.(blocking.)
@@ -51,13 +51,13 @@ func Connect(index int) (h *HID) {
 		return nil
 	}
 	h = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
-	// start thread to read joystick events to the joystick.state osEvent channel
+	// start thread to read device events to the HID.osEvent channel
 	go eventPipe(r, h.OSEvent)
 	h.populate()
 	return h
 }
 
-// fill in the joysticks available events from the synthetic state events burst produced initially by the driver.
+// fill in the devices available events from the synthetic state events burst produced initially by the driver.
 func (h HID) populate() {
 	for buttonNumber, hatNumber, axisNumber := 1, 1, 1; ; {
 		evt := <-h.OSEvent
