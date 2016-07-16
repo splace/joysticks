@@ -24,17 +24,17 @@ const maxValue = 1<<15 - 1
 // Finds the first unused joystick, from a max of 4.
 // Intended for bacic use since doesn't return state object.
 func Capture(registrees ...Channel) []chan event {
-	js := Connect(1)
-	for i := 2; js == nil && i < 5; i++ {
-		js = Connect(i)
+	h := Connect(1)
+	for i := 2; h == nil && i < 5; i++ {
+		h = Connect(i)
 	}
-	if js == nil {
+	if h == nil {
 		return nil
 	}
-	go js.ParcelOutEvents()
+	go h.ParcelOutEvents()
 	chans := make([]chan event, len(registrees))
 	for i, fns := range registrees {
-		chans[i] = fns.Method(*js, fns.Number)
+		chans[i] = fns.Method(*h, fns.Number)
 	}
 	return chans
 }
@@ -45,35 +45,35 @@ var inputPathSlice = []byte("/dev/input/js ")[0:13]
 // register channels by using the returned state object's On<xxx>(index) methods.
 // Note: only one event, of each type '<xxx>', for each 'index', re-registering stops events going on the old channel.
 // then activate using state objects ParcelOutEvents() method.(blocking.)
-func Connect(index int) (js *Joystick) {
+func Connect(index int) (h *HID) {
 	r, e := os.OpenFile(string(strconv.AppendUint(inputPathSlice, uint64(index-1), 10)), os.O_RDWR, 0)
 	if e != nil {
 		return nil
 	}
-	js = &Joystick{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
+	h = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
 	// start thread to read joystick events to the joystick.state osEvent channel
-	go eventPipe(r, js.OSEvent)
-	js.populate()
-	return js
+	go eventPipe(r, h.OSEvent)
+	h.populate()
+	return h
 }
 
 // fill in the joysticks available events from the synthetic state events burst produced initially by the driver.
-func (js Joystick) populate() {
+func (h HID) populate() {
 	for buttonNumber, hatNumber, axisNumber := 1, 1, 1; ; {
-		evt := <-js.OSEvent
+		evt := <-h.OSEvent
 		switch evt.Type {
 		case 0x81:
-			js.buttons[evt.Index] = button{uint8(buttonNumber), toDuration(evt.Time), evt.Value != 0}
+			h.buttons[evt.Index] = button{uint8(buttonNumber), toDuration(evt.Time), evt.Value != 0}
 			buttonNumber += 1
 		case 0x82:
-			js.hatAxes[evt.Index] = hatAxis{uint8(hatNumber), uint8(axisNumber), toDuration(evt.Time), float32(evt.Value) / maxValue}
+			h.hatAxes[evt.Index] = hatAxis{uint8(hatNumber), uint8(axisNumber), toDuration(evt.Time), float32(evt.Value) / maxValue}
 			axisNumber += 1
 			if axisNumber > 2 {
 				axisNumber = 1
 				hatNumber += 1
 			}
 		default:
-			go func() { js.OSEvent <- evt }() // put the consumed, first, after end of synthetic burst, real event, back on channel.
+			go func() { h.OSEvent <- evt }() // put the consumed, first, after end of synthetic burst, real event, back on channel.
 			return
 		}
 	}
