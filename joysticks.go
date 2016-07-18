@@ -93,33 +93,34 @@ func (d HID) ParcelOutEvents() {
 				d.buttons[evt.Index] = button{b.number, toDuration(evt.Time), evt.Value != 0}
 			case 2:
 				h:=d.hatAxes[evt.Index]
+				v:=float32(evt.Value) / maxValue
 				switch h.axis {
 				case 1:
 					if c, ok := d.hatPanXEvents[h.number]; ok {
-						c <- HatPanXEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue}
+						c <- HatPanXEvent{when{toDuration(evt.Time)}, v}
 					}
 				case 2:
 					if c, ok := d.hatPanYEvents[h.number]; ok {
-						c <- HatPanYEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue}
+						c <- HatPanYEvent{when{toDuration(evt.Time)}, v}
 					}
 				}
 				if c, ok := d.hatPositionEvents[h.number]; ok {
 					switch d.hatAxes[evt.Index].axis {
 					case 1:
-						c <- HatPositionEvent{when{toDuration(evt.Time)}, float32(evt.Value) / maxValue, d.hatAxes[evt.Index+1].value}
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, v, d.hatAxes[evt.Index+1].value}
 					case 2:
-						c <- HatPositionEvent{when{toDuration(evt.Time)}, d.hatAxes[evt.Index-1].value, float32(evt.Value) / maxValue}
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, d.hatAxes[evt.Index-1].value, v}
 					}
 				}
 				if c, ok := d.hatAngleEvents[h.number]; ok {
 					switch d.hatAxes[evt.Index].axis {
 					case 1:
-						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(evt.Value), float64(d.hatAxes[evt.Index+1].value)))}
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.hatAxes[evt.Index+1].value)))}
 					case 2:
-						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.hatAxes[evt.Index-1].value), float64(evt.Value)/maxValue))}
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.hatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
-				d.hatAxes[evt.Index] = hatAxis{h.number, h.axis, toDuration(evt.Time), float32(evt.Value) / maxValue}
+				d.hatAxes[evt.Index] = hatAxis{h.number, h.axis, toDuration(evt.Time), v}
 			default:
 				// log.Println("unknown input type. ",evt.Type & 0x7f)
 			}
