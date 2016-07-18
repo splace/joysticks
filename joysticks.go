@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 )
+var LongPressDelay = time.Second
 
 type hatAxis struct {
 	number uint8
@@ -85,7 +86,7 @@ func (d HID) ParcelOutEvents() {
 						c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
 					}
 					if c, ok := d.buttonLongPressEvents[b.number]; ok {
-						if toDuration(evt.Time) > b.time+time.Second {
+						if toDuration(evt.Time) > b.time+LongPressDelay {
 							c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
 						}
 					}
