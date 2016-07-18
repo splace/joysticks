@@ -18,7 +18,7 @@ type button struct {
 	value  bool
 }
 
-//HID holds the in-coming event channel, mappings, and registered events for a joystick, and has methods to control and adjust behaviour.
+//HID holds the in-coming event channel, mappings, and registered events for a device, and has methods to control and adjust behaviour.
 type HID struct {
 	OSEvents              chan osEventRecord
 	Buttons               map[uint8]button
@@ -73,7 +73,7 @@ type HatAngleEvent struct {
 	Angle float32
 }
 
-// ParcelOutEvents interprets waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
+// ParcelOutEvents waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
 func (d HID) ParcelOutEvents() {
 	for {
 		if evt, ok := <-d.OSEvents; ok {
@@ -190,6 +190,7 @@ func (d HID) OnRotate(hat uint8) chan event {
 	return c
 }
 
+// see if Button exists.
 func (d HID) ButtonExists(button uint8) (ok bool) {
 	for _, v := range d.Buttons {
 		if v.number == button {
@@ -199,6 +200,7 @@ func (d HID) ButtonExists(button uint8) (ok bool) {
 	return
 }
 
+// see if Hat exists.
 func (d HID) HatExists(hat uint8) (ok bool) {
 	for _, v := range d.HatAxes {
 		if v.number == hat {
@@ -208,6 +210,7 @@ func (d HID) HatExists(hat uint8) (ok bool) {
 	return
 }
 
+// insert events as if from hardware.
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
