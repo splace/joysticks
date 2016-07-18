@@ -20,9 +20,9 @@ type button struct {
 
 //HID holds the in-coming event channel, mappings, and registered events for a joystick, and has methods to control and adjust behaviour.
 type HID struct {
-	OSEvent               chan osEventRecord
-	buttons               map[uint8]button
-	hatAxes               map[uint8]hatAxis
+	OSEvents              chan osEventRecord
+	Buttons               map[uint8]button
+	HatAxes               map[uint8]hatAxis
 	buttonCloseEvents     map[uint8]chan event
 	buttonOpenEvents      map[uint8]chan event
 	buttonLongPressEvents map[uint8]chan event
@@ -50,6 +50,7 @@ type HatPositionEvent struct {
 	X, Y float32
 }
 
+// Button changed event
 type ButtonChangeEvent struct {
 	when
 }
@@ -63,22 +64,22 @@ type HatPanXEvent struct {
 // Hat Axis changed event, V {-1...1}
 type HatPanYEvent struct {
 	when
-	V float32 
+	V float32
 }
 
 // Hat angle changed event, Angle {-Pi...Pi}
 type HatAngleEvent struct {
 	when
-	Angle float32 
+	Angle float32
 }
 
 // ParcelOutEvents interprets waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
 func (d HID) ParcelOutEvents() {
 	for {
-		if evt, ok := <-d.OSEvent; ok {
+		if evt, ok := <-d.OSEvents; ok {
 			switch evt.Type {
 			case 1:
-				b:=d.buttons[evt.Index]
+				b := d.Buttons[evt.Index]
 				if evt.Value == 0 {
 					if c, ok := d.buttonOpenEvents[b.number]; ok {
 						c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
@@ -94,10 +95,10 @@ func (d HID) ParcelOutEvents() {
 						c <- ButtonChangeEvent{when{toDuration(evt.Time)}}
 					}
 				}
-				d.buttons[evt.Index] = button{b.number, toDuration(evt.Time), evt.Value != 0}
+				d.Buttons[evt.Index] = button{b.number, toDuration(evt.Time), evt.Value != 0}
 			case 2:
-				h:=d.hatAxes[evt.Index]
-				v:=float32(evt.Value) / maxValue
+				h := d.HatAxes[evt.Index]
+				v := float32(evt.Value) / maxValue
 				switch h.axis {
 				case 1:
 					if c, ok := d.hatPanXEvents[h.number]; ok {
@@ -109,22 +110,22 @@ func (d HID) ParcelOutEvents() {
 					}
 				}
 				if c, ok := d.hatPositionEvents[h.number]; ok {
-					switch d.hatAxes[evt.Index].axis {
+					switch d.HatAxes[evt.Index].axis {
 					case 1:
-						c <- HatPositionEvent{when{toDuration(evt.Time)}, v, d.hatAxes[evt.Index+1].value}
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index+1].value}
 					case 2:
-						c <- HatPositionEvent{when{toDuration(evt.Time)}, d.hatAxes[evt.Index-1].value, v}
+						c <- HatPositionEvent{when{toDuration(evt.Time)}, d.HatAxes[evt.Index-1].value, v}
 					}
 				}
 				if c, ok := d.hatAngleEvents[h.number]; ok {
-					switch d.hatAxes[evt.Index].axis {
+					switch d.HatAxes[evt.Index].axis {
 					case 1:
-						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.hatAxes[evt.Index+1].value)))}
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
 					case 2:
-						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.hatAxes[evt.Index-1].value), float64(v)))}
+						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
-				d.hatAxes[evt.Index] = hatAxis{h.number, h.axis, toDuration(evt.Time), v}
+				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, toDuration(evt.Time), v}
 			default:
 				// log.Println("unknown input type. ",evt.Type & 0x7f)
 			}
@@ -190,7 +191,7 @@ func (d HID) OnRotate(hat uint8) chan event {
 }
 
 func (d HID) ButtonExists(button uint8) (ok bool) {
-	for _, v := range d.buttons {
+	for _, v := range d.Buttons {
 		if v.number == button {
 			return true
 		}
@@ -199,7 +200,7 @@ func (d HID) ButtonExists(button uint8) (ok bool) {
 }
 
 func (d HID) HatExists(hat uint8) (ok bool) {
-	for _, v := range d.hatAxes {
+	for _, v := range d.HatAxes {
 		if v.number == hat {
 			return true
 		}
@@ -208,5 +209,5 @@ func (d HID) HatExists(hat uint8) (ok bool) {
 }
 
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
-	d.OSEvent <- osEventRecord{Value: v, Type: t, Index: i}
+	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }

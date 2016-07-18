@@ -23,4 +23,3 @@ handle all events directly using the returned HID's OSEvent channel.
 
 */
 package joysticks
-

@@ -77,8 +77,8 @@ func TestHIDsAdvanced(t *testing.T) {
 	if js1 == nil {
 		panic("no HIDs")
 	}
-	if len(js1.buttons) < 10 || len(js1.hatAxes) < 6 {
-		t.Errorf("HID#1, available buttons %d, Hats %d\n", len(js1.buttons), len(js1.hatAxes)/2)
+	if len(js1.Buttons) < 10 || len(js1.HatAxes) < 6 {
+		t.Errorf("HID#1, available buttons %d, Hats %d\n", len(js1.Buttons), len(js1.HatAxes)/2)
 	}
 
 	b1 := js1.OnClose(1)
@@ -130,4 +130,3 @@ func play(s Sound) {
 		panic(err)
 	}
 }
-
