@@ -44,6 +44,7 @@ func (b when) Moment() time.Duration {
 	return b.time
 }
 
+// Hat Axis changed event, X,Y {-1...1}
 type HatPositionEvent struct {
 	when
 	X, Y float32
@@ -53,19 +54,22 @@ type ButtonChangeEvent struct {
 	when
 }
 
+// Hat Axis changed event, V {-1...1}
 type HatPanXEvent struct {
 	when
 	V float32
 }
 
+// Hat Axis changed event, V {-1...1}
 type HatPanYEvent struct {
 	when
-	V float32
+	V float32 
 }
 
+// Hat angle changed event, Angle {-Pi...Pi}
 type HatAngleEvent struct {
 	when
-	Angle float32
+	Angle float32 
 }
 
 // ParcelOutEvents interprets waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
@@ -178,7 +182,7 @@ func (d HID) OnPanY(hat uint8) chan event {
 	return c
 }
 
-// hat axis-Y moved
+// hat angle changed
 func (d HID) OnRotate(hat uint8) chan event {
 	c := make(chan event)
 	d.hatAngleEvents[hat] = c

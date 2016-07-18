@@ -32,6 +32,7 @@ func TestHIDsCapture(t *testing.T) {
 			fmt.Println(h.(HatAngleEvent).Angle)
 			x = h.(HatAngleEvent).Angle/6.28 + .5
 		case h := <-events[3]:
+			fmt.Println(h.(HatAngleEvent).Angle)
 			f = time.Duration(100*math.Pow(2, float64(h.(HatAngleEvent).Angle)/6.28)) * time.Second / 44000
 		}
 	}
