@@ -84,8 +84,7 @@ func (d HID) populate() {
 func eventPipe(r io.Reader, c chan osEventRecord) {
 	var evt osEventRecord
 	for {
-		err := binary.Read(r, binary.LittleEndian, &evt)
-		if err != nil {
+		if binary.Read(r, binary.LittleEndian, &evt) != nil {
 			close(c)
 			return
 		}
