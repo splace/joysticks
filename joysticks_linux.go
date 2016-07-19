@@ -66,7 +66,7 @@ func (d HID) populate() {
 			d.Buttons[evt.Index] = button{uint8(buttonNumber), toDuration(evt.Time), evt.Value != 0}
 			buttonNumber += 1
 		case 0x82:
-			d.HatAxes[evt.Index] = hatAxis{uint8(hatNumber), uint8(axisNumber), toDuration(evt.Time), float32(evt.Value) / maxValue}
+			d.HatAxes[evt.Index] = hatAxis{uint8(hatNumber), uint8(axisNumber), false, toDuration(evt.Time), float32(evt.Value) / maxValue}
 			axisNumber += 1
 			if axisNumber > 2 {
 				axisNumber = 1

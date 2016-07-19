@@ -9,6 +9,7 @@ var LongPressDelay = time.Second
 type hatAxis struct {
 	number uint8
 	axis   uint8
+	reversed bool
 	time   time.Duration
 	value  float32
 }
@@ -100,6 +101,7 @@ func (d HID) ParcelOutEvents() {
 			case 2:
 				h := d.HatAxes[evt.Index]
 				v := float32(evt.Value) / maxValue
+				if h.reversed{v=-v}
 				switch h.axis {
 				case 1:
 					if c, ok := d.hatPanXEvents[h.number]; ok {
@@ -111,7 +113,7 @@ func (d HID) ParcelOutEvents() {
 					}
 				}
 				if c, ok := d.hatPositionEvents[h.number]; ok {
-					switch d.HatAxes[evt.Index].axis {
+					switch h.axis {
 					case 1:
 						c <- HatPositionEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index+1].value}
 					case 2:
@@ -119,14 +121,14 @@ func (d HID) ParcelOutEvents() {
 					}
 				}
 				if c, ok := d.hatAngleEvents[h.number]; ok {
-					switch d.HatAxes[evt.Index].axis {
+					switch h.axis {
 					case 1:
 						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
 					case 2:
 						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
-				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, toDuration(evt.Time), v}
+				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, h.reversed ,toDuration(evt.Time), v}
 			default:
 				// log.Println("unknown input type. ",evt.Type & 0x7f)
 			}
