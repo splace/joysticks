@@ -3,7 +3,7 @@ Go language joystick/controller/gamepad interface.
 
 uses Linux 'input' interface to receive events directly, no polling.
 
-then uses channels to pipe around events, for flexibility and multi-threading.
+uses channels to pipe around events, for flexibility and multi-threading.
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 
@@ -62,5 +62,7 @@ Example: play a note when pressing button #1. hat position changes frequency, y 
 	} 
 
 
+
+Note: "jstest-gtk" - system wide mapping and calibration.
 
 
