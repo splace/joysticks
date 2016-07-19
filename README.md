@@ -1,7 +1,7 @@
 # joysticks
-Go language joystick interface.
+Go language joystick/controller/gamepad interface.
 
-uses Linux input interface to receive events directly, no polling.
+uses Linux 'input' interface to receive events directly, no polling.
 
 then uses channels to pipe around events, for flexibility and multi-threading.
 
