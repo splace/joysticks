@@ -18,7 +18,7 @@ func TestHIDsCapture(t *testing.T) {
 		Channel{10, HID.OnLong},  // event[0] button #10 long pressed
 		Channel{1, HID.OnClose},  // event[1] button #1 closes
 		Channel{1, HID.OnRotate}, // event[2] hat #1 rotates
-		Channel{2, HID.OnRotate}, // event[2] hat #1 rotates
+		Channel{2, HID.OnRotate}, // event[2] hat #2 rotates
 	)
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
