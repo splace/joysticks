@@ -15,10 +15,10 @@ func main() {
 	events := Capture(
 		Channel{10, HID.OnLong},  // event[0] button #10 long pressed
 		Channel{1, HID.OnClose},  // event[1] button #1 closes
-		Channel{7, HID.OnOpen},  // event[1] button #1 closes
-		Channel{8, HID.OnOpen},  // event[1] button #1 closes
-		Channel{2, HID.OnRotate}, // event[2] hat #1 rotates
-		Channel{1, HID.OnRotate}, // event[2] hat #2 rotates
+		Channel{7, HID.OnOpen},  // event[2] button #7 opens
+		Channel{8, HID.OnOpen},  // event[3] button #8 opens
+		Channel{2, HID.OnRotate}, // event[4] hat #1 rotates
+		Channel{1, HID.OnRotate}, // event[5] hat #2 rotates
 	)
 	var volume float32 = .5
 	var octave =5
