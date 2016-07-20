@@ -63,6 +63,6 @@ Example: play a note when pressing button #1. hat position changes frequency, y 
 
 
 
-Note: "jstest-gtk" - system wide mapping and calibration.
+Note: "jstest-gtk" - system wide mapping and calibration for joysticks.
 
 

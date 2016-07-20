@@ -158,7 +158,7 @@ func (d HID) OnClose(button uint8) chan event {
 	return c
 }
 
-// button goes open and last event on it, closed, wasn't recent. (within 1 second)
+// button goes open and the previous event, closed, was more than LongPressDelay ago.
 func (d HID) OnLong(button uint8) chan event {
 	c := make(chan event)
 	d.buttonLongPressEvents[button] = c
@@ -212,6 +212,17 @@ func (d HID) HatExists(hat uint8) (ok bool) {
 	}
 	return
 }
+
+// Hat current position. (coords slice needs to be long enough to hold all axis.)
+func (d HID) ReadHatPosition(hat uint8, coords []float32) {
+	for _, h := range d.HatAxes {
+		if h.number == hat {
+			coords[h.axis-1]=h.value
+		}
+	}
+	return
+}
+
 
 // insert events as if from hardware.
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
