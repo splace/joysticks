@@ -216,7 +216,7 @@ func (d HID) HatExists(hat uint8) (ok bool) {
 	return
 }
 
-// Hat current position. (coords slice needs to be long enough to hold all axis.)
+// Hat latest position. (coords slice needs to be long enough to hold all axis.)
 func (d HID) ReadHatPosition(hat uint8, coords []float32) {
 	for _, h := range d.HatAxes {
 		if h.number == hat {
