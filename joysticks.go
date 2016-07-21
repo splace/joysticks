@@ -4,14 +4,15 @@ import (
 	"math"
 	"time"
 )
+
 var LongPressDelay = time.Second
 
 type hatAxis struct {
-	number uint8
-	axis   uint8
+	number   uint8
+	axis     uint8
 	reversed bool
-	time   time.Duration
-	value  float32
+	time     time.Duration
+	value    float32
 }
 
 type button struct {
@@ -101,7 +102,9 @@ func (d HID) ParcelOutEvents() {
 			case 2:
 				h := d.HatAxes[evt.Index]
 				v := float32(evt.Value) / maxValue
-				if h.reversed{v=-v}
+				if h.reversed {
+					v = -v
+				}
 				switch h.axis {
 				case 1:
 					if c, ok := d.hatPanXEvents[h.number]; ok {
@@ -128,7 +131,7 @@ func (d HID) ParcelOutEvents() {
 						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
-				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, h.reversed ,toDuration(evt.Time), v}
+				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, h.reversed, toDuration(evt.Time), v}
 			default:
 				// log.Println("unknown input type. ",evt.Type & 0x7f)
 			}
@@ -217,14 +220,15 @@ func (d HID) HatExists(hat uint8) (ok bool) {
 func (d HID) ReadHatPosition(hat uint8, coords []float32) {
 	for _, h := range d.HatAxes {
 		if h.number == hat {
-			coords[h.axis-1]=h.value
+			coords[h.axis-1] = h.value
 		}
 	}
 	return
 }
 
-
 // insert events as if from hardware.
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
+
+

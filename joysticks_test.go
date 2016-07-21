@@ -86,7 +86,7 @@ func TestHIDsAdvanced(t *testing.T) {
 	b3 := js1.OnClose(3)
 	b4 := js1.OnClose(4)
 	b5 := js1.OnClose(5)
-	coord:=make([]float32,2)
+	coord := make([]float32, 2)
 	quit := js1.OnOpen(10)
 	h4 := js1.OnPanX(2)
 	h5 := js1.OnPanY(2)
@@ -107,7 +107,7 @@ func TestHIDsAdvanced(t *testing.T) {
 		case <-b4:
 			play(NewSound(NewTone(time.Second/150, 1), time.Second/3))
 		case <-b5:
-			js1.ReadHatPosition(1,coord)
+			js1.ReadHatPosition(1, coord)
 			fmt.Println(coord)
 		case h := <-h3:
 			fmt.Println("hat 3 moved", h)
