@@ -33,6 +33,7 @@ type HID struct {
 	hatPanYEvents         map[uint8]chan event
 	hatPositionEvents     map[uint8]chan event
 	hatAngleEvents        map[uint8]chan event
+	hatEdgeEvents         map[uint8]chan event
 }
 
 type event interface {
@@ -131,6 +132,16 @@ func (d HID) ParcelOutEvents() {
 						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
+				if c, ok := d.hatEdgeEvents[h.number]; ok {
+					if (v==1 || v==-1) && h.value != 1 && h.value !=-1 {
+						switch h.axis {
+						case 1:
+							c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
+						case 2:
+							c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
+						}
+					}
+				}
 				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, h.reversed, toDuration(evt.Time), v}
 			default:
 				// log.Println("unknown input type. ",evt.Type & 0x7f)
@@ -195,6 +206,15 @@ func (d HID) OnRotate(hat uint8) chan event {
 	d.hatAngleEvents[hat] = c
 	return c
 }
+
+
+// hat moved to edge
+func (d HID) OnEdge(hat uint8) chan event {
+	c := make(chan event)
+	d.hatEdgeEvents[hat] = c
+	return c
+}
+
 
 // see if Button exists.
 func (d HID) ButtonExists(button uint8) (ok bool) {
