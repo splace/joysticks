@@ -11,55 +11,43 @@ Installation:
 
      go get github.com/splace/joysticks
 
-Example: play a note when pressing button #1. hat position changes frequency, y axis, and volume, x axis. (long press button #10 to exit) 
+Example: prints event info for pressing button #1 or moving hat#1. 
 
 	package main
 
-	import (
-		"io"
-		"os/exec"
-		"time"
-		"math"
-	)
-
 	import . "github.com/splace/joysticks"
-
-	import . "github.com/splace/sounds"
+	import "fmt"
+	import  "time"
 
 	func main() {
-		jsevents := Capture(
-			Channel{10, HID.OnLong}, // events[0] button #10 long pressed
-			Channel{1, HID.OnClose}, // events[1] button #1 closes
-			Channel{1, HID.OnMove},  // events[2] hat #1 moves
-		)
-		var x float32 = .5
-		var f time.Duration = time.Second / 440
-		for {
-			select {
-			case <-jsevents[0]:
-				return
-			case <-jsevents[1]:
-				play(NewSound(NewTone(f, float64(x)), time.Second/3))
-			case h := <-jsevents[2]:
-				x = h.(HatChangeEvent).X/2 + .5
-				f = time.Duration(100*math.Pow(2, float64(h.(HatChangeEvent).Y))) * time.Second / 44000
-			}
-		}
-	}
+		device := Connect(1)
 
-	func play(s Sound) {
-		cmd := exec.Command("aplay")
-		out, in := io.Pipe()
-		go func() {
-			Encode(in, 2, 44100, s)
-			in.Close()
-		}()
-		cmd.Stdin = out
-		err := cmd.Run()
-		if err != nil {
-			panic(err)
+		if device == nil {
+			panic("no HIDs")
 		}
-	} 
+		fmt.Printf("HID#1:- Buttons:%d, Hats:%d\n", len(device.Buttons), len(device.HatAxes)/2)
+
+		b1press := device.OnClose(1)
+		h1move := device.OnMove(1)
+
+		go device.ParcelOutEvents()
+
+		fmt.Println("Timeout in 10 secs.")
+	
+	loop:
+		for{
+			select {
+			case <-time.After(time.Second*10):
+				fmt.Println("Shutting down due to timeout.")
+				break loop
+			case <-b1press:
+				fmt.Println("button #1 pressed")
+			case h := <-h1move:
+				hpos:=h.(HatPositionEvent)
+				fmt.Println("hat #1 moved too:", hpos.X,hpos.Y)
+			}
+		}	
+	}
 
 
 
