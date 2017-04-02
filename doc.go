@@ -26,7 +26,7 @@ or (DIY)
 
 'Connect' to a HID by index number
 
-handle all events directly using the returned HID's OSEvent channel.
+handle all events directly using the returned HID's OSEvents channel.
 
 */
 package joysticks

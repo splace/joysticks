@@ -73,7 +73,7 @@ func (d HID) populate() {
 				hatNumber += 1
 			}
 		default:
-			go func() { d.OSEvents <- evt }() // put the consumed, first, after end of synthetic burst, real event, back on channel.
+			go func() { d.OSEvents <- evt }() // have to consume a real event to know we reached the end of the synthetic burst, so hand it on.
 			return
 		}
 	}

@@ -3,6 +3,7 @@ package joysticks
 import (
 	"math"
 	"time"
+	"fmt"
 )
 
 var LongPressDelay = time.Second
@@ -133,6 +134,7 @@ func (d HID) ParcelOutEvents() {
 					}
 				}
 				if c, ok := d.hatEdgeEvents[h.number]; ok {
+					fmt.Println(v,h)
 					if (v==1 || v==-1) && h.value != 1 && h.value !=-1 {
 						switch h.axis {
 						case 1:

@@ -13,6 +13,57 @@ import (
 )
 import "math"
 
+func TestHIDsAdvanced(t *testing.T) {
+	js1 := Connect(1)
+
+	if js1 == nil {
+		panic("no HIDs")
+	}
+	if len(js1.Buttons) < 10 || len(js1.HatAxes) < 6 {
+		t.Errorf("HID#1, available buttons %d, Hats %d\n", len(js1.Buttons), len(js1.HatAxes)/2)
+	}
+
+	b1 := js1.OnClose(1)
+	b2 := js1.OnClose(2)
+	b3 := js1.OnClose(3)
+	b4 := js1.OnClose(4)
+	b5 := js1.OnClose(5)
+	coord := make([]float32, 2)
+	quit := js1.OnOpen(10)
+	h4 := js1.OnPanX(2)
+	h5 := js1.OnPanY(2)
+	h3 := js1.OnMove(3)
+	h6:=js1.OnEdge(1)
+	go js1.ParcelOutEvents()
+	time.AfterFunc(time.Second*10, func() { js1.InsertSyntheticEvent(1, 1, 1) }) // value=1 (close),type=1 (button), index=1, so fires b1 after 10 seconds
+
+	for {
+		select {
+		case <-quit:
+			return
+		case <-b1:
+			play(NewSound(NewTone(time.Second/440, 1), time.Second/3))
+		case <-b2:
+			play(NewSound(NewTone(time.Second/660, 1), time.Second/3))
+		case <-b3:
+			play(NewSound(NewTone(time.Second/250, 1), time.Second/3))
+		case <-b4:
+			play(NewSound(NewTone(time.Second/150, 1), time.Second/3))
+		case <-b5:
+			js1.ReadHatPosition(1, coord)
+			fmt.Println(coord)
+		case h := <-h3:
+			fmt.Println("hat 3 moved", h)
+		case h := <-h4:
+			fmt.Println("hat 2 X moved", h.(HatPanXEvent).V)
+		case h := <-h5:
+			fmt.Println("hat 2 Y moved", h)
+		case h := <-h6:
+			fmt.Println("hat 1 edged", h.(HatAngleEvent).Angle)
+		}
+	}
+}
+
 func TestHIDsCapture(t *testing.T) {
 	events := Capture(
 		Channel{10, HID.OnLong},  // event[0] button #10 long pressed
@@ -71,56 +122,6 @@ func TestHIDsMutipleCapture(t *testing.T) {
 	}
 }
 
-func TestHIDsAdvanced(t *testing.T) {
-	js1 := Connect(1)
-
-	if js1 == nil {
-		panic("no HIDs")
-	}
-	if len(js1.Buttons) < 10 || len(js1.HatAxes) < 6 {
-		t.Errorf("HID#1, available buttons %d, Hats %d\n", len(js1.Buttons), len(js1.HatAxes)/2)
-	}
-
-	b1 := js1.OnClose(1)
-	b2 := js1.OnClose(2)
-	b3 := js1.OnClose(3)
-	b4 := js1.OnClose(4)
-	b5 := js1.OnClose(5)
-	coord := make([]float32, 2)
-	quit := js1.OnOpen(10)
-	h4 := js1.OnPanX(2)
-	h5 := js1.OnPanY(2)
-	h3 := js1.OnMove(3)
-	h6:=js1.OnEdge(1)
-	go js1.ParcelOutEvents()
-	time.AfterFunc(time.Second*10, func() { js1.InsertSyntheticEvent(1, 1, 1) }) // value=1 (close),type=1 (button), index=1, so fires b1 after 10 seconds
-
-	for {
-		select {
-		case <-quit:
-			return
-		case <-b1:
-			play(NewSound(NewTone(time.Second/440, 1), time.Second/3))
-		case <-b2:
-			play(NewSound(NewTone(time.Second/660, 1), time.Second/3))
-		case <-b3:
-			play(NewSound(NewTone(time.Second/250, 1), time.Second/3))
-		case <-b4:
-			play(NewSound(NewTone(time.Second/150, 1), time.Second/3))
-		case <-b5:
-			js1.ReadHatPosition(1, coord)
-			fmt.Println(coord)
-		case h := <-h3:
-			fmt.Println("hat 3 moved", h)
-		case h := <-h4:
-			fmt.Println("hat 2 X moved", h.(HatPanXEvent).V)
-		case h := <-h5:
-			fmt.Println("hat 2 Y moved", h)
-		case h := <-h6:
-			fmt.Println("hat 1 edged", h.(HatAngleEvent).Angle)
-		}
-	}
-}
 
 func play(s Sound) {
 	out, in := io.Pipe()
@@ -136,4 +137,7 @@ func play(s Sound) {
 	}
 }
 
+/*  Hal3 Sun 2 Apr 23:41:29 BST 2017 go version go1.6.2 linux/amd64
+Sun 2 Apr 23:41:29 BST 2017
+*/
 
