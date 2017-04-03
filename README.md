@@ -11,7 +11,7 @@ Installation:
 
      go get github.com/splace/joysticks
 
-Example: prints event info for pressing button #1 or moving hat#1. 
+Example: prints event info for pressing button #1 or moving hat#1.(with 10sec timeout.) 
 
 	package main
 
