@@ -6,6 +6,9 @@ import (
 	"fmt"
 )
 
+// TODO integer axis position events
+// TODO drag event
+
 var LongPressDelay = time.Second
 
 type hatAxis struct {
