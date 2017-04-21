@@ -37,6 +37,7 @@ type HID struct {
 	hatPanYEvents         map[uint8]chan event
 	hatPositionEvents     map[uint8]chan event
 	hatAngleEvents        map[uint8]chan event
+	hatRadiusEvents       map[uint8]chan event
 	hatEdgeEvents         map[uint8]chan event
 }
 
@@ -46,6 +47,10 @@ type event interface {
 
 type when struct {
 	time time.Duration
+}
+
+type region struct {
+	maxX,maxY,minX,minY float32 
 }
 
 func (b when) Moment() time.Duration {
@@ -79,6 +84,12 @@ type HatPanYEvent struct {
 type HatAngleEvent struct {
 	when
 	Angle float32
+}
+
+// Hat radius changed event, R {-1...1}
+type HatRadiusEvent struct {
+	when
+	R float32
 }
 
 // ParcelOutEvents waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
@@ -136,6 +147,14 @@ func (d HID) ParcelOutEvents() {
 						c <- HatAngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
+				if c, ok := d.hatRadiusEvents[h.number]; ok {
+					switch h.axis {
+					case 1:
+						c <- HatRadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v)+float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value)))}
+					case 2:
+						c <- HatRadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value)+float64(v)*float64(v)))}
+					}
+				}
 				if c, ok := d.hatEdgeEvents[h.number]; ok {
 					fmt.Println(v,h)
 					if (v==1 || v==-1) && h.value != 1 && h.value !=-1 {
@@ -157,7 +176,7 @@ func (d HID) ParcelOutEvents() {
 	}
 }
 
-// Type of registerable methods and the index they are called witd. (Note: the event type is indicated by the method.)
+// Type of registerable methods and the index they are called with. (Note: the event type is indicated by the method.)
 type Channel struct {
 	Number uint8
 	Method func(HID, uint8) chan event
@@ -219,6 +238,7 @@ func (d HID) OnEdge(hat uint8) chan event {
 	d.hatEdgeEvents[hat] = c
 	return c
 }
+
 
 
 // see if Button exists.

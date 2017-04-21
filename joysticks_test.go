@@ -137,7 +137,3 @@ func play(s Sound) {
 	}
 }
 
-/*  Hal3 Sun 2 Apr 23:41:29 BST 2017 go version go1.6.2 linux/amd64
-Sun 2 Apr 23:41:29 BST 2017
-*/
-
