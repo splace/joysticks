@@ -41,7 +41,7 @@ Example: prints event info for pressing button #1 or moving hat#1.(with 10sec ti
 				case <-b1press:
 					fmt.Println("button #1 pressed")
 				case h := <-h1move:
-					hpos:=h.(HatPositionEvent)
+					hpos:=h.(CoordsEvent)
 					fmt.Println("hat #1 moved too:", hpos.X,hpos.Y)
 				}
 			}

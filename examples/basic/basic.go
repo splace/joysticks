@@ -29,10 +29,10 @@ func main() {
 			case <-b2press:
 				fmt.Println("button #2 pressed")
 				coords := make([]float32, 2)
-				device.ReadHatPosition(1,coords)
+				device.HatCoords(1,coords)
 				fmt.Println("current hat #1 position:",coords)
 			case h := <-h1move:
-				hpos:=h.(HatPositionEvent)
+				hpos:=h.(CoordsEvent)
 				fmt.Println("hat #1 moved too:", hpos.X,hpos.Y)
 			}
 		}
