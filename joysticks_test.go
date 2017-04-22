@@ -50,16 +50,16 @@ func TestHIDsAdvanced(t *testing.T) {
 		case <-b4:
 			play(NewSound(NewTone(time.Second/150, 1), time.Second/3))
 		case <-b5:
-			js1.ReadHatPosition(1, coord)
+			js1.HatCoords(1, coord)
 			fmt.Println(coord)
 		case h := <-h3:
 			fmt.Println("hat 3 moved", h)
 		case h := <-h4:
-			fmt.Println("hat 2 X moved", h.(HatPanXEvent).V)
+			fmt.Println("hat 2 X moved", h.(PanEvent).V)
 		case h := <-h5:
 			fmt.Println("hat 2 Y moved", h)
 		case h := <-h6:
-			fmt.Println("hat 1 edged", h.(HatAngleEvent).Angle)
+			fmt.Println("hat 1 edged", h.(AngleEvent).Angle)
 		}
 	}
 }
@@ -80,11 +80,11 @@ func TestHIDsCapture(t *testing.T) {
 		case <-events[1]:
 			play(NewSound(NewTone(f, float64(x)), time.Second/3))
 		case h := <-events[2]:
-			fmt.Println(h.(HatAngleEvent).Angle)
-			x = h.(HatAngleEvent).Angle/6.28 + .5
+			fmt.Println(h.(AngleEvent).Angle)
+			x = h.(AngleEvent).Angle/6.28 + .5
 		case h := <-events[3]:
-			fmt.Println(h.(HatAngleEvent).Angle)
-			f = time.Duration(100*math.Pow(2, float64(h.(HatAngleEvent).Angle)/6.28)) * time.Second / 44000
+			fmt.Println(h.(AngleEvent).Angle)
+			f = time.Duration(100*math.Pow(2, float64(h.(AngleEvent).Angle)/6.28)) * time.Second / 44000
 		}
 	}
 }
@@ -113,11 +113,11 @@ func TestHIDsMutipleCapture(t *testing.T) {
 		case <-events2[1]:
 			play(NewSound(NewTone(f, float64(x)), time.Second/3))
 		case h := <-events1[2]:
-			x = h.(HatPositionEvent).X/2 + .5
-			f = time.Duration(100*math.Pow(2, float64(h.(HatPositionEvent).Y))) * time.Second / 44000
+			x = h.(CoordsEvent).X/2 + .5
+			f = time.Duration(100*math.Pow(2, float64(h.(CoordsEvent).Y))) * time.Second / 44000
 		case h := <-events2[2]:
-			x = h.(HatPositionEvent).X/2 + .5
-			f = time.Duration(100*math.Pow(2, float64(h.(HatPositionEvent).Y))) * time.Second / 44000
+			x = h.(CoordsEvent).X/2 + .5
+			f = time.Duration(100*math.Pow(2, float64(h.(CoordsEvent).Y))) * time.Second / 44000
 		}
 	}
 }

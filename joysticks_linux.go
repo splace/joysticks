@@ -50,7 +50,7 @@ func Connect(index int) (d *HID) {
 	if e != nil {
 		return nil
 	}
-	d = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event)}
+	d = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[eventSigniture]chan Event)}
 	// start thread to read joystick events to the joystick.state osEvent channel
 	go eventPipe(r, d.OSEvents)
 	d.populate()
