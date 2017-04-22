@@ -23,7 +23,7 @@ const maxValue = 1<<15 - 1
 // Capture returns a chan, for each registree, getting the events the registree indicates.
 // Finds the first unused joystick, from a max of 4.
 // Intended for bacic use since doesn't return HID object.
-func Capture(registrees ...Channel) []chan event {
+func Capture(registrees ...Channel) []chan Event {
 	d := Connect(1)
 	for i := 2; d == nil && i < 5; i++ {
 		d = Connect(i)
@@ -32,7 +32,7 @@ func Capture(registrees ...Channel) []chan event {
 		return nil
 	}
 	go d.ParcelOutEvents()
-	chans := make([]chan event, len(registrees))
+	chans := make([]chan Event, len(registrees))
 	for i, fns := range registrees {
 		chans[i] = fns.Method(*d, fns.Number)
 	}
@@ -50,7 +50,7 @@ func Connect(index int) (d *HID) {
 	if e != nil {
 		return nil
 	}
-	d = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event), make(map[uint8]chan event)}
+	d = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event), make(map[uint8]chan Event)}
 	// start thread to read joystick events to the joystick.state osEvent channel
 	go eventPipe(r, d.OSEvents)
 	d.populate()
@@ -95,5 +95,3 @@ func eventPipe(r io.Reader, c chan osEventRecord) {
 func toDuration(m uint32) time.Duration {
 	return time.Duration(m) * 1000000
 }
-
-

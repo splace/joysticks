@@ -33,7 +33,7 @@ func TestHIDsAdvanced(t *testing.T) {
 	h4 := js1.OnPanX(2)
 	h5 := js1.OnPanY(2)
 	h3 := js1.OnMove(3)
-	h6:=js1.OnEdge(1)
+	h6 := js1.OnEdge(1)
 	go js1.ParcelOutEvents()
 	time.AfterFunc(time.Second*10, func() { js1.InsertSyntheticEvent(1, 1, 1) }) // value=1 (close),type=1 (button), index=1, so fires b1 after 10 seconds
 
@@ -122,7 +122,6 @@ func TestHIDsMutipleCapture(t *testing.T) {
 	}
 }
 
-
 func play(s Sound) {
 	out, in := io.Pipe()
 	go func() {
@@ -136,4 +135,3 @@ func play(s Sound) {
 		panic(err)
 	}
 }
-

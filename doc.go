@@ -9,14 +9,14 @@ usage:
 
 'Event', an interface, provides a time.Duration through the Moment() method, returning whatever the underlying Linux driver provides as the events timestamp, as a time.Duration.
 
-Events, will need casting to the actual type to access data other than moment. 
+Events, will need casting to the actual type to access data other than moment.
 
 
 or (more flexible)
 
-'Connect(index)' to a HID. 
+'Connect(index)' to a HID.
 
-Use methods to add (or alter) 'Event' channels, 
+Use methods to add (or alter) 'Event' channels,
 
 Start running by calling 'ParcelOutEvents()'.
 
