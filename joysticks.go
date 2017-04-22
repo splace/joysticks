@@ -84,25 +84,25 @@ type HatEvent struct {
 	value  float32
 }
 
-// Hat Axis changed event type. X,Y{-1...1}
+// Hat position event type. X,Y{-1...1}
 type CoordsEvent struct {
 	when
 	X, Y float32
 }
 
-// Hat Axis changed event type. V{-1...1}
+// Hat Axis event type. V{-1...1}
 type PanEvent struct {
 	when
 	V float32
 }
 
-// Hat angle changed event type. Angle{-Pi...Pi}
+// Hat angle event type. Angle{-Pi...Pi}
 type AngleEvent struct {
 	when
 	Angle float32
 }
 
-// Hat radius changed event type. Radius{0...√2}
+// Hat radius event type. Radius{0...√2}
 type RadiusEvent struct {
 	when
 	Radius float32
