@@ -6,10 +6,9 @@ import (
 	//	"fmt"
 )
 
-// TODO divided position events
 // TODO drag event
 
-var LongPressDelay = time.Second
+var LongPressDelay = time.Second/2
 
 type hatAxis struct {
 	number   uint8
@@ -48,28 +47,16 @@ type eventSigniture struct {
 	number uint8
 }
 
-// TODO change HID *Events to iota in a single map
 
-//HID holds the in-coming event channel, mappings, and registered events for a device, and has methods to control and adjust behaviour.
+//HID holds the in-coming event channel, available button and hat indexes, and registered events for a device, and has methods to control and adjust behaviour.
 type HID struct {
 	OSEvents              chan osEventRecord
 	Buttons               map[uint8]button
 	HatAxes               map[uint8]hatAxis
 	Events	map[eventSigniture]chan Event
-//	buttonChangeEvents    map[uint8]chan Event
-//	buttonCloseEvents     map[uint8]chan Event
-//	buttonOpenEvents      map[uint8]chan Event
-//	buttonLongPressEvents map[uint8]chan Event
-//	hatChangeEvents       map[uint8]chan Event
-//	hatPanXEvents         map[uint8]chan Event
-//	hatPanYEvents         map[uint8]chan Event
-//	hatPositionEvents     map[uint8]chan Event
-//	hatAngleEvents        map[uint8]chan Event
-//	hatRadiusEvents       map[uint8]chan Event
-//	hatCenteredEvents     map[uint8]chan Event
-//	hatEdgeEvents         map[uint8]chan Event
 }
 
+// Events always have the time they occurred.
 type Event interface {
 	Moment() time.Duration
 }
@@ -97,25 +84,25 @@ type HatEvent struct {
 	value  float32
 }
 
-// Hat Axis changed event, X,Y {-1...1}
+// Hat Axis changed event type. X,Y{-1...1}
 type CoordsEvent struct {
 	when
 	X, Y float32
 }
 
-// Hat Axis changed event, V {-1...1}
+// Hat Axis changed event type. V{-1...1}
 type PanEvent struct {
 	when
 	V float32
 }
 
-// Hat angle changed event, Angle {-Pi...Pi}
+// Hat angle changed event type. Angle{-Pi...Pi}
 type AngleEvent struct {
 	when
 	Angle float32
 }
 
-// Hat radius changed event, R {0...1}
+// Hat radius changed event type. Radius{0...√2}
 type RadiusEvent struct {
 	when
 	Radius float32
@@ -225,76 +212,76 @@ func (d HID) ParcelOutEvents() {
 	}
 }
 
-// Type of registerable methods and the index they are called with. (Note: the event type is indicated by the method.)
+// Type of register-able methods and the index they are called with. (Note: the event type is indicated by the method.)
 type Channel struct {
 	Number uint8
 	Method func(HID, uint8) chan Event
 }
 
-// button chnages
+// button changes event channel.
 func (d HID) OnButton(button uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{buttonChange,button}] = c
 	return c
 }
 
-// button goes open
+// button goes open event channel.
 func (d HID) OnOpen(button uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{buttonOpen,button}] = c
 	return c
 }
 
-// button goes closed
+// button goes closed event channel.
 func (d HID) OnClose(button uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{buttonClose,button}] = c
 	return c
 }
 
-// button goes open and the previous event, closed, was more than LongPressDelay ago.
+// button goes open and the previous event, closed, was more than LongPressDelay ago, event channel.
 func (d HID) OnLong(button uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{buttonLongPress,button}] = c
 	return c
 }
 
-// hat moved
+// hat moved event channel.
 func (d HID) OnHat(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{hatChange,hat}] = c
 	return c
 }
 
-// hat position changed
+// hat position changed event channel.
 func (d HID) OnMove(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{hatPosition,hat}] = c
 	return c
 }
 
-// hat axis-X moved
+// hat axis-X moved event channel.
 func (d HID) OnPanX(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{hatPanX,hat}] = c
 	return c
 }
 
-// hat axis-Y moved
+// hat axis-Y moved event channel.
 func (d HID) OnPanY(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{hatPanY,hat}] = c
 	return c
 }
 
-// hat angle changed
+// hat angle changed event channel.
 func (d HID) OnRotate(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{hatAngle,hat}] = c
 	return c
 }
 
-// hat moved to center
+// hat moved event channel.
 func (d HID) OnCenter(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{hatCentered,hat}] = c
