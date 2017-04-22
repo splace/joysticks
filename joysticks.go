@@ -40,6 +40,7 @@ type HID struct {
 	hatPositionEvents     map[uint8]chan Event
 	hatAngleEvents        map[uint8]chan Event
 	hatRadiusEvents       map[uint8]chan Event
+	hatCenteredEvents     map[uint8]chan Event
 	hatEdgeEvents         map[uint8]chan Event
 }
 
@@ -180,6 +181,20 @@ func (d HID) ParcelOutEvents() {
 						}
 					}
 				}
+				if c, ok := d.hatCenteredEvents[h.number]; ok {
+					if v == 0 && h.value != 0 {
+						switch h.axis {
+						case 1:
+							if d.HatAxes[evt.Index+1].value==0 {
+								c <- when{toDuration(evt.Time)}
+							}
+						case 2:
+							if d.HatAxes[evt.Index-1].value==0 {
+								c <- when{toDuration(evt.Time)}
+							}
+						}
+					}
+				}
 				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, h.reversed, toDuration(evt.Time), v}
 			default:
 				// log.Println("unknown input type. ",evt.Type & 0x7f)
@@ -256,6 +271,13 @@ func (d HID) OnPanY(hat uint8) chan Event {
 func (d HID) OnRotate(hat uint8) chan Event {
 	c := make(chan Event)
 	d.hatAngleEvents[hat] = c
+	return c
+}
+
+// hat moved to center
+func (d HID) OnCenter(hat uint8) chan Event {
+	c := make(chan Event)
+	d.hatCenteredEvents[hat] = c
 	return c
 }
 
