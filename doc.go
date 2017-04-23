@@ -7,19 +7,19 @@ Highlevel Usage
 
 'Capture', one call to setup and start basic 'Event' channeling on the first available device.
 
-Midlevel (more flexible)
+Midlevel
 
 'Connect(index)' to a HID.
 
-Use methods to add (or alter) 'Event' channels,
+Use methods to add (or alter) 'Event' channels.
 
 Start running by calling 'ParcelOutEvents()'.
 
 (event index to channel mappings can be changed dynamically.)
 
-Lowlevel (DIY)
+Lowlevel
 
-'Connect' to a HID by index number
+'Connect' to a HID by index number.
 
 handle all events directly appearing on the returned HID's OSEvents channel.
 
