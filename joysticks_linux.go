@@ -12,32 +12,13 @@ import (
 
 // see; https://www.kernel.org/doc/Documentation/input/joystick-api.txt
 type osEventRecord struct {
-	Time  uint32 // event timestamp, unknown base, in milliseconds 32bit so, about a month
+	Time  uint32 // event timestamp, unknown base, in milliseconds 32bit, so about a month
 	Value int16  // value
 	Type  uint8  // event type
 	Index uint8  // axis/button
 }
 
 const maxValue = 1<<15 - 1
-
-// Capture returns a chan, for each registree, getting the events the registree indicates.
-// Finds the first unused joystick, from a max of 4.
-// Intended for bacic use since doesn't return HID object.
-func Capture(registrees ...Channel) []chan Event {
-	d := Connect(1)
-	for i := 2; d == nil && i < 5; i++ {
-		d = Connect(i)
-	}
-	if d == nil {
-		return nil
-	}
-	go d.ParcelOutEvents()
-	chans := make([]chan Event, len(registrees))
-	for i, fns := range registrees {
-		chans[i] = fns.Method(*d, fns.Number)
-	}
-	return chans
-}
 
 var inputPathSlice = []byte("/dev/input/js ")[0:13]
 

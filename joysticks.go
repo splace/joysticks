@@ -48,7 +48,8 @@ type eventSigniture struct {
 }
 
 
-//HID holds the in-coming event channel, available button and hat indexes, and registered events for a device, and has methods to control and adjust behaviour.
+// HID holds the in-coming event channel, available button and hat indexes, and registered events, for a human interface device.
+// has methods to control and adjust behaviour.
 type HID struct {
 	OSEvents              chan osEventRecord
 	Buttons               map[uint8]button
@@ -218,6 +219,28 @@ type Channel struct {
 	Method func(HID, uint8) chan Event
 }
 
+
+// Capture is highlevel automation of the setup of event channels.
+// returned are matching chan's for each registree, which then receive events of the type and index the registree indicated.
+// It uses the first available joystick, from a max of 4.
+// Doesn't return HID object, so settings are fixed.
+func Capture(registrees ...Channel) []chan Event {
+	d := Connect(1)
+	for i := 2; d == nil && i < 5; i++ {
+		d = Connect(i)
+	}
+	if d == nil {
+		return nil
+	}
+	go d.ParcelOutEvents()
+	chans := make([]chan Event, len(registrees))
+	for i, fns := range registrees {
+		chans[i] = fns.Method(*d, fns.Number)
+	}
+	return chans
+}
+
+
 // button changes event channel.
 func (d HID) OnButton(button uint8) chan Event {
 	c := make(chan Event)
@@ -334,3 +357,4 @@ func (d HID) HatCoords(hat uint8, coords []float32) {
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
+
