@@ -7,6 +7,7 @@ import (
 )
 
 // TODO drag event
+// TODO move plus edge continue events (self generating)
 
 var LongPressDelay = time.Second/2
 var DoublePressDelay = time.Second/10
