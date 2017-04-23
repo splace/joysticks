@@ -3,36 +3,31 @@ Package joysticks, provides simplified event routing, through channels, from the
 
 events can be listened for from any thread, dynamically re-mapped and simulated.
 
-usage (highlevel):
+Highlevel Usage 
 
-	'Capture', one call to setup and start basic 'Event' channeling on the first available device.
+'Capture', one call to setup and start basic 'Event' channeling on the first available device.
 
-or (midlevel) more flexible.
+Midlevel (more flexible.)
 
-	'Connect(index)' to a HID.
+'Connect(index)' to a HID.
 
-	Use methods to add (or alter) 'Event' channels,
+Use methods to add (or alter) 'Event' channels,
 
-	Start running by calling 'ParcelOutEvents()'.
+Start running by calling 'ParcelOutEvents()'.
 
-	(event index to channel mappings can be changed dynamically.)
+(event index to channel mappings can be changed dynamically.)
 
-or (lowlevel/DIY)
+Lowlevel/DIY
 
-	'Connect' to a HID by index number
+'Connect' to a HID by index number
 
-	handle all events directly using the returned HID's OSEvents channel.
+handle all events directly appearing on the returned HID's OSEvents channel.
 
+Interface
 
-Interface:
+'Event' interface, provides a time.Duration through a call to the Moment() method, returning whatever the underlying Linux driver provides as the events timestamp, as a time.Duration.
 
-
-	'Event', an interface, provides a time.Duration through the Moment() method, returning whatever the underlying Linux driver provides as the events timestamp, as a time.Duration.
-
-	Note: retured Events, will need asserting to their underlying type to access data other than moment.
-
-
-
+returned 'Event's need asserting to their underlying type to access data other than moment.
 
 */
 package joysticks
