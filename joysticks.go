@@ -9,6 +9,7 @@ import (
 // TODO drag event
 
 var LongPressDelay = time.Second/2
+var DoublePressDelay = time.Second/10
 
 type hatAxis struct {
 	number   uint8
@@ -32,6 +33,7 @@ const (
 	buttonClose
 	buttonOpen
 	buttonLongPress
+	buttonDoublePress
 	hatChange
 	hatPanX
 	hatPanY
@@ -132,6 +134,11 @@ func (d HID) ParcelOutEvents() {
 				if evt.Value == 1 {
 					if c, ok := d.Events[eventSigniture{buttonClose,b.number}]; ok {
 						c <- when{toDuration(evt.Time)}
+					}
+					if c, ok := d.Events[eventSigniture{buttonDoublePress,b.number}]; ok {
+						if toDuration(evt.Time) < b.time+DoublePressDelay {
+							c <- when{toDuration(evt.Time)}
+						}
 					}
 				}
 				d.Buttons[evt.Index] = button{b.number, toDuration(evt.Time), evt.Value != 0}
@@ -266,6 +273,13 @@ func (d HID) OnClose(button uint8) chan Event {
 func (d HID) OnLong(button uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSigniture{buttonLongPress,button}] = c
+	return c
+}
+
+// button goes closed and the previous event, open, was less than DoublePressDelay ago, event channel.
+func (d HID) OnDouble(button uint8) chan Event {
+	c := make(chan Event)
+	d.Events[eventSigniture{buttonDoublePress,button}] = c
 	return c
 }
 

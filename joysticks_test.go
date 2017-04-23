@@ -66,7 +66,7 @@ func TestHIDsAdvanced(t *testing.T) {
 
 func TestHIDsCapture(t *testing.T) {
 	events := Capture(
-		Channel{10, HID.OnLong},  // event[0] button #10 long pressed
+		Channel{10, HID.OnDouble},  // event[0] button #10 double press
 		Channel{1, HID.OnClose},  // event[1] button #1 closes
 		Channel{1, HID.OnRotate}, // event[2] hat #1 rotates
 		Channel{2, HID.OnRotate}, // event[2] hat #2 rotates
