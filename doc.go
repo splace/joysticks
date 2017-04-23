@@ -7,7 +7,7 @@ Highlevel Usage
 
 'Capture', one call to setup and start basic 'Event' channeling on the first available device.
 
-Midlevel (more flexible.)
+Midlevel (more flexible)
 
 'Connect(index)' to a HID.
 
@@ -17,7 +17,7 @@ Start running by calling 'ParcelOutEvents()'.
 
 (event index to channel mappings can be changed dynamically.)
 
-Lowlevel/DIY
+Lowlevel (DIY)
 
 'Connect' to a HID by index number
 
