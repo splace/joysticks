@@ -9,8 +9,8 @@ import (
 // TODO drag event
 // TODO move plus edge continue events (self generating)
 
-var LongPressDelay = time.Second/2
-var DoublePressDelay = time.Second/10
+var LongPressDelay = time.Second / 2
+var DoublePressDelay = time.Second / 10
 
 type hatAxis struct {
 	number   uint8
@@ -25,7 +25,6 @@ type button struct {
 	time   time.Duration
 	value  bool
 }
-
 
 type eventType uint8
 
@@ -43,22 +42,23 @@ const (
 	hatRadius
 	hatCentered
 	hatEdge
+	hatVelocityX
+	hatVelocityY
 )
 
 // signature of an event
 type eventSignature struct {
-	typ eventType
+	eventType
 	number uint8
 }
-
 
 // HID holds the in-coming event channel, available button and hat indexes, and registered events, for a human interface device.
 // has methods to control and adjust behaviour.
 type HID struct {
-	OSEvents              chan osEventRecord
-	Buttons               map[uint8]button
-	HatAxes               map[uint8]hatAxis
-	Events	map[eventSignature]chan Event
+	OSEvents chan osEventRecord
+	Buttons  map[uint8]button
+	HatAxes  map[uint8]hatAxis
+	Events   map[eventSignature]chan Event
 }
 
 // Events always have the time they occurred.
@@ -96,7 +96,7 @@ type CoordsEvent struct {
 }
 
 // Hat Axis event type. V{-1...1}
-type PanEvent struct {
+type AxisEvent struct {
 	when
 	V float32
 }
@@ -120,24 +120,24 @@ func (d HID) ParcelOutEvents() {
 			switch evt.Type {
 			case 1:
 				b := d.Buttons[evt.Index]
-				if c, ok := d.Events[eventSignature{buttonChange,b.number}]; ok {
+				if c, ok := d.Events[eventSignature{buttonChange, b.number}]; ok {
 					c <- ButtonEvent{when{toDuration(evt.Time)}, b.number, evt.Value == 1}
 				}
 				if evt.Value == 0 {
-					if c, ok := d.Events[eventSignature{buttonOpen,b.number}]; ok {
+					if c, ok := d.Events[eventSignature{buttonOpen, b.number}]; ok {
 						c <- when{toDuration(evt.Time)}
 					}
-					if c, ok := d.Events[eventSignature{buttonLongPress,b.number}]; ok {
+					if c, ok := d.Events[eventSignature{buttonLongPress, b.number}]; ok {
 						if toDuration(evt.Time) > b.time+LongPressDelay {
 							c <- when{toDuration(evt.Time)}
 						}
 					}
 				}
 				if evt.Value == 1 {
-					if c, ok := d.Events[eventSignature{buttonClose,b.number}]; ok {
+					if c, ok := d.Events[eventSignature{buttonClose, b.number}]; ok {
 						c <- when{toDuration(evt.Time)}
 					}
-					if c, ok := d.Events[eventSignature{buttonDoublePress,b.number}]; ok {
+					if c, ok := d.Events[eventSignature{buttonDoublePress, b.number}]; ok {
 						if toDuration(evt.Time) < b.time+DoublePressDelay {
 							c <- when{toDuration(evt.Time)}
 						}
@@ -150,62 +150,68 @@ func (d HID) ParcelOutEvents() {
 				if h.reversed {
 					v = -v
 				}
-				if c, ok := d.Events[eventSignature{hatChange,h.number}]; ok {
+				if c, ok := d.Events[eventSignature{hatChange, h.number}]; ok {
 					c <- HatEvent{when{toDuration(evt.Time)}, h.number, h.axis, v}
 				}
 				switch h.axis {
-				case 1:
-					if c, ok := d.Events[eventSignature{hatPanX,h.number}]; ok {
-						c <- PanEvent{when{toDuration(evt.Time)}, v}
-					}
 				case 2:
-					if c, ok := d.Events[eventSignature{hatPanY,h.number}]; ok {
-						c <- PanEvent{when{toDuration(evt.Time)}, v}
+					if c, ok := d.Events[eventSignature{hatPanX, h.number}]; ok {
+						c <- AxisEvent{when{toDuration(evt.Time)}, v}
+					}
+					if c, ok := d.Events[eventSignature{hatVelocityX, h.number}]; ok {
+						c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
+					}
+				case 1:
+					if c, ok := d.Events[eventSignature{hatPanY, h.number}]; ok {
+						c <- AxisEvent{when{toDuration(evt.Time)}, v}
+					}
+					if c, ok := d.Events[eventSignature{hatVelocityY, h.number}]; ok {
+						c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
 					}
 				}
-				if c, ok := d.Events[eventSignature{hatPosition,h.number}]; ok {
+				if c, ok := d.Events[eventSignature{hatPosition, h.number}]; ok {
 					switch h.axis {
-					case 1:
-						c <- CoordsEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index+1].value}
 					case 2:
+						c <- CoordsEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index+1].value}
+					case 1:
 						c <- CoordsEvent{when{toDuration(evt.Time)}, d.HatAxes[evt.Index-1].value, v}
 					}
 				}
-				if c, ok := d.Events[eventSignature{hatAngle,h.number}]; ok {
+				if c, ok := d.Events[eventSignature{hatAngle, h.number}]; ok {
 					switch h.axis {
-					case 1:
-						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
 					case 2:
+						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
+					case 1:
 						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
-				if c, ok := d.Events[eventSignature{hatRadius,h.number}]; ok {
+				if c, ok := d.Events[eventSignature{hatRadius, h.number}]; ok {
 					switch h.axis {
-					case 1:
-						c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value)))}
 					case 2:
+						c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value)))}
+					case 1:
 						c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value) + float64(v)*float64(v)))}
 					}
 				}
-				if c, ok := d.Events[eventSignature{hatEdge,h.number}]; ok {
+				if c, ok := d.Events[eventSignature{hatEdge, h.number}]; ok {
 					// fmt.Println(v,h)
 					if (v == 1 || v == -1) && h.value != 1 && h.value != -1 {
 						switch h.axis {
-						case 1:
-							c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
 						case 2:
+							c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
+						case 1:
 							c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 						}
 					}
 				}
-				if c, ok := d.Events[eventSignature{hatCentered,h.number}]; ok {
+				if c, ok := d.Events[eventSignature{hatCentered, h.number}]; ok {
 					if v == 0 && h.value != 0 {
 						switch h.axis {
-						case 1:
+						case 2:
 							if d.HatAxes[evt.Index+1].value == 0 {
 								c <- when{toDuration(evt.Time)}
 							}
-						case 2:
+						case 1:
 							if d.HatAxes[evt.Index-1].value == 0 {
 								c <- when{toDuration(evt.Time)}
 							}
@@ -228,7 +234,6 @@ type Channel struct {
 	Method func(HID, uint8) chan Event
 }
 
-
 // Capture is highlevel automation of the setup of event channels.
 // returned are matching chan's for each registree, which then receive events of the type and index the registree indicated.
 // It uses the first available joystick, from a max of 4.
@@ -249,88 +254,101 @@ func Capture(registrees ...Channel) []chan Event {
 	return chans
 }
 
-
 // button changes event channel.
 func (d HID) OnButton(button uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonChange,button}] = c
+	d.Events[eventSignature{buttonChange, button}] = c
 	return c
 }
 
 // button goes open event channel.
 func (d HID) OnOpen(button uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonOpen,button}] = c
+	d.Events[eventSignature{buttonOpen, button}] = c
 	return c
 }
 
 // button goes closed event channel.
 func (d HID) OnClose(button uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonClose,button}] = c
+	d.Events[eventSignature{buttonClose, button}] = c
 	return c
 }
 
 // button goes open and the previous event, closed, was more than LongPressDelay ago, event channel.
 func (d HID) OnLong(button uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonLongPress,button}] = c
+	d.Events[eventSignature{buttonLongPress, button}] = c
 	return c
 }
 
 // button goes closed and the previous event, open, was less than DoublePressDelay ago, event channel.
 func (d HID) OnDouble(button uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonDoublePress,button}] = c
+	d.Events[eventSignature{buttonDoublePress, button}] = c
 	return c
 }
 
 // hat moved event channel.
 func (d HID) OnHat(hat uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatChange,hat}] = c
+	d.Events[eventSignature{hatChange, hat}] = c
 	return c
 }
 
 // hat position changed event channel.
 func (d HID) OnMove(hat uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatPosition,hat}] = c
+	d.Events[eventSignature{hatPosition, hat}] = c
 	return c
 }
 
 // hat axis-X moved event channel.
 func (d HID) OnPanX(hat uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatPanX,hat}] = c
+	d.Events[eventSignature{hatPanX, hat}] = c
 	return c
 }
 
 // hat axis-Y moved event channel.
 func (d HID) OnPanY(hat uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatPanY,hat}] = c
+	d.Events[eventSignature{hatPanY, hat}] = c
+	return c
+}
+
+// hat axis-X moved event channel.
+func (d HID) OnSpeedX(hat uint8) chan Event {
+	c := make(chan Event)
+	d.Events[eventSignature{hatVelocityX, hat}] = c
+	return c
+}
+
+// hat axis-Y moved event channel.
+func (d HID) OnSpeedY(hat uint8) chan Event {
+	c := make(chan Event)
+	d.Events[eventSignature{hatVelocityY, hat}] = c
 	return c
 }
 
 // hat angle changed event channel.
 func (d HID) OnRotate(hat uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatAngle,hat}] = c
+	d.Events[eventSignature{hatAngle, hat}] = c
 	return c
 }
 
 // hat moved event channel.
 func (d HID) OnCenter(hat uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatCentered,hat}] = c
+	d.Events[eventSignature{hatCentered, hat}] = c
 	return c
 }
 
 // hat moved to edge
 func (d HID) OnEdge(hat uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatEdge,hat}] = c
+	d.Events[eventSignature{hatEdge, hat}] = c
 	return c
 }
 
@@ -373,4 +391,3 @@ func (d HID) HatCoords(hat uint8, coords []float32) {
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
-

@@ -28,7 +28,6 @@ func TestHIDsAdvanced(t *testing.T) {
 	b3 := js1.OnClose(3)
 	b4 := js1.OnClose(4)
 	b5 := js1.OnClose(5)
-	coord := make([]float32, 2)
 	quit := js1.OnOpen(10)
 	h4 := js1.OnPanX(2)
 	h5 := js1.OnPanY(2)
@@ -50,14 +49,15 @@ func TestHIDsAdvanced(t *testing.T) {
 		case <-b4:
 			play(NewSound(NewTone(time.Second/150, 1), time.Second/3))
 		case <-b5:
+			coord := make([]float32, 2)
 			js1.HatCoords(1, coord)
 			fmt.Println(coord)
 		case h := <-h3:
-			fmt.Println("hat 3 moved", h)
+			fmt.Printf("hat 3 moved %+v\n", h)
 		case h := <-h4:
-			fmt.Println("hat 2 X moved", h.(PanEvent).V)
+			fmt.Println("hat 2 X moved", h.(AxisEvent).V)
 		case h := <-h5:
-			fmt.Println("hat 2 Y moved", h)
+			fmt.Printf("hat 2 Y moved %+v\n", h)
 		case h := <-h6:
 			fmt.Println("hat 1 edged", h.(AngleEvent).Angle)
 		}
@@ -66,10 +66,10 @@ func TestHIDsAdvanced(t *testing.T) {
 
 func TestHIDsCapture(t *testing.T) {
 	events := Capture(
-		Channel{10, HID.OnDouble},  // event[0] button #10 double press
-		Channel{1, HID.OnClose},  // event[1] button #1 closes
-		Channel{1, HID.OnRotate}, // event[2] hat #1 rotates
-		Channel{2, HID.OnRotate}, // event[2] hat #2 rotates
+		Channel{10, HID.OnDouble}, // event[0] button #10 double press
+		Channel{1, HID.OnClose},   // event[1] button #1 closes
+		Channel{1, HID.OnRotate},  // event[2] hat #1 rotates
+		Channel{2, HID.OnRotate},  // event[2] hat #2 rotates
 	)
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
@@ -90,34 +90,29 @@ func TestHIDsCapture(t *testing.T) {
 }
 
 func TestHIDsMutipleCapture(t *testing.T) {
-	events1 := Capture(
-		Channel{10, HID.OnLong}, // event[0] button #10 long pressed
-		Channel{1, HID.OnClose}, // event[1] button #1 closes
-		Channel{1, HID.OnMove},  // event[2] hat #1 moves
+	buttonEvents := Capture(
+		Channel{10, HID.OnLong}, // button #10 long pressed
+		Channel{1, HID.OnClose}, 
 	)
-	events2 := Capture(
-		Channel{10, HID.OnLong}, // event[0] button #10 long pressed
-		Channel{1, HID.OnClose}, // event[1] button #1 closes
-		Channel{1, HID.OnMove},  // event[2] hat #1 moves
+	hatEvents := Capture(
+		Channel{1, HID.OnMove},  
+		Channel{2, HID.OnSpeedX},
+		Channel{2, HID.OnPanX},
 	)
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
 	for {
 		select {
-		case <-events1[0]:
+		case <-buttonEvents[0]:
 			return
-		case <-events2[0]:
-			return
-		case <-events1[1]:
+		case <-buttonEvents[1]:
 			play(NewSound(NewTone(f, float64(x)), time.Second/3))
-		case <-events2[1]:
-			play(NewSound(NewTone(f, float64(x)), time.Second/3))
-		case h := <-events1[2]:
-			x = h.(CoordsEvent).X/2 + .5
+		case h := <-hatEvents[0]:
 			f = time.Duration(100*math.Pow(2, float64(h.(CoordsEvent).Y))) * time.Second / 44000
-		case h := <-events2[2]:
-			x = h.(CoordsEvent).X/2 + .5
-			f = time.Duration(100*math.Pow(2, float64(h.(CoordsEvent).Y))) * time.Second / 44000
+		case h := <-hatEvents[1]:
+			fmt.Printf("hat 2 X speed %+v\n",h.(AxisEvent).V)
+		case h := <-hatEvents[2]:
+			fmt.Printf("hat 2 X pan %+v\n",h.(AxisEvent).V)
 		}
 	}
 }
@@ -135,3 +130,5 @@ func play(s Sound) {
 		panic(err)
 	}
 }
+
+

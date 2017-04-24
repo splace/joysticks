@@ -3,7 +3,7 @@ Package joysticks, provides simplified event routing, through channels, from the
 
 events can be listened for from any thread, dynamically re-mapped and simulated.
 
-Highlevel Usage 
+Highlevel Usage
 
 'Capture', one call to setup and start basic 'Event' channeling on the first available device.
 
