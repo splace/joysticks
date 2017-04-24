@@ -113,71 +113,88 @@ type RadiusEvent struct {
 	Radius float32
 }
 
-// ParcelOutEvents waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
+// ParcelOutEvents waits on the HID.OSEvent channel (so blocks until OSEvent is closed), then puts the required event(s), on any registered channel(s).
 func (d HID) ParcelOutEvents() {
-	for {
-		if evt, ok := <-d.OSEvents; ok {
-			switch evt.Type {
-			case 1:
-				b := d.Buttons[evt.Index]
-				if c, ok := d.Events[eventSignature{buttonChange, b.number}]; ok {
-					c <- ButtonEvent{when{toDuration(evt.Time)}, b.number, evt.Value == 1}
+	for evt := range(d.OSEvents){
+		switch evt.Type {
+		case 1:
+			b := d.Buttons[evt.Index]
+			if c, ok := d.Events[eventSignature{buttonChange, b.number}]; ok {
+				c <- ButtonEvent{when{toDuration(evt.Time)}, b.number, evt.Value == 1}
+			}
+			if evt.Value == 0 {
+				if c, ok := d.Events[eventSignature{buttonOpen, b.number}]; ok {
+					c <- when{toDuration(evt.Time)}
 				}
-				if evt.Value == 0 {
-					if c, ok := d.Events[eventSignature{buttonOpen, b.number}]; ok {
+				if c, ok := d.Events[eventSignature{buttonLongPress, b.number}]; ok {
+					if toDuration(evt.Time) > b.time+LongPressDelay {
 						c <- when{toDuration(evt.Time)}
 					}
-					if c, ok := d.Events[eventSignature{buttonLongPress, b.number}]; ok {
-						if toDuration(evt.Time) > b.time+LongPressDelay {
-							c <- when{toDuration(evt.Time)}
-						}
-					}
 				}
-				if evt.Value == 1 {
-					if c, ok := d.Events[eventSignature{buttonClose, b.number}]; ok {
+			}
+			if evt.Value == 1 {
+				if c, ok := d.Events[eventSignature{buttonClose, b.number}]; ok {
+					c <- when{toDuration(evt.Time)}
+				}
+				if c, ok := d.Events[eventSignature{buttonDoublePress, b.number}]; ok {
+					if toDuration(evt.Time) < b.time+DoublePressDelay {
 						c <- when{toDuration(evt.Time)}
 					}
-					if c, ok := d.Events[eventSignature{buttonDoublePress, b.number}]; ok {
-						if toDuration(evt.Time) < b.time+DoublePressDelay {
-							c <- when{toDuration(evt.Time)}
-						}
-					}
 				}
-				d.Buttons[evt.Index] = button{b.number, toDuration(evt.Time), evt.Value != 0}
+			}
+			d.Buttons[evt.Index] = button{b.number, toDuration(evt.Time), evt.Value != 0}
+		case 2:
+			h := d.HatAxes[evt.Index]
+			v := float32(evt.Value) / maxValue
+			if h.reversed {
+				v = -v
+			}
+			if c, ok := d.Events[eventSignature{hatChange, h.number}]; ok {
+				c <- HatEvent{when{toDuration(evt.Time)}, h.number, h.axis, v}
+			}
+			switch h.axis {
 			case 2:
-				h := d.HatAxes[evt.Index]
-				v := float32(evt.Value) / maxValue
-				if h.reversed {
-					v = -v
+				if c, ok := d.Events[eventSignature{hatPanX, h.number}]; ok {
+					c <- AxisEvent{when{toDuration(evt.Time)}, v}
 				}
-				if c, ok := d.Events[eventSignature{hatChange, h.number}]; ok {
-					c <- HatEvent{when{toDuration(evt.Time)}, h.number, h.axis, v}
+				if c, ok := d.Events[eventSignature{hatVelocityX, h.number}]; ok {
+					c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
 				}
+			case 1:
+				if c, ok := d.Events[eventSignature{hatPanY, h.number}]; ok {
+					c <- AxisEvent{when{toDuration(evt.Time)}, v}
+				}
+				if c, ok := d.Events[eventSignature{hatVelocityY, h.number}]; ok {
+					c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
+				}
+			}
+			if c, ok := d.Events[eventSignature{hatPosition, h.number}]; ok {
 				switch h.axis {
 				case 2:
-					if c, ok := d.Events[eventSignature{hatPanX, h.number}]; ok {
-						c <- AxisEvent{when{toDuration(evt.Time)}, v}
-					}
-					if c, ok := d.Events[eventSignature{hatVelocityX, h.number}]; ok {
-						c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
-					}
+					c <- CoordsEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index+1].value}
 				case 1:
-					if c, ok := d.Events[eventSignature{hatPanY, h.number}]; ok {
-						c <- AxisEvent{when{toDuration(evt.Time)}, v}
-					}
-					if c, ok := d.Events[eventSignature{hatVelocityY, h.number}]; ok {
-						c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
-					}
+					c <- CoordsEvent{when{toDuration(evt.Time)}, d.HatAxes[evt.Index-1].value, v}
 				}
-				if c, ok := d.Events[eventSignature{hatPosition, h.number}]; ok {
-					switch h.axis {
-					case 2:
-						c <- CoordsEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index+1].value}
-					case 1:
-						c <- CoordsEvent{when{toDuration(evt.Time)}, d.HatAxes[evt.Index-1].value, v}
-					}
+			}
+			if c, ok := d.Events[eventSignature{hatAngle, h.number}]; ok {
+				switch h.axis {
+				case 2:
+					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
+				case 1:
+					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 				}
-				if c, ok := d.Events[eventSignature{hatAngle, h.number}]; ok {
+			}
+			if c, ok := d.Events[eventSignature{hatRadius, h.number}]; ok {
+				switch h.axis {
+				case 2:
+					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value)))}
+				case 1:
+					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value) + float64(v)*float64(v)))}
+				}
+			}
+			if c, ok := d.Events[eventSignature{hatEdge, h.number}]; ok {
+				// fmt.Println(v,h)
+				if (v == 1 || v == -1) && h.value != 1 && h.value != -1 {
 					switch h.axis {
 					case 2:
 						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
@@ -185,46 +202,26 @@ func (d HID) ParcelOutEvents() {
 						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
 					}
 				}
-				if c, ok := d.Events[eventSignature{hatRadius, h.number}]; ok {
+			}
+			if c, ok := d.Events[eventSignature{hatCentered, h.number}]; ok {
+				if v == 0 && h.value != 0 {
 					switch h.axis {
 					case 2:
-						c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value)))}
+						if d.HatAxes[evt.Index+1].value == 0 {
+							c <- when{toDuration(evt.Time)}
+						}
 					case 1:
-						c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value) + float64(v)*float64(v)))}
-					}
-				}
-				if c, ok := d.Events[eventSignature{hatEdge, h.number}]; ok {
-					// fmt.Println(v,h)
-					if (v == 1 || v == -1) && h.value != 1 && h.value != -1 {
-						switch h.axis {
-						case 2:
-							c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
-						case 1:
-							c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
+						if d.HatAxes[evt.Index-1].value == 0 {
+							c <- when{toDuration(evt.Time)}
 						}
 					}
 				}
-				if c, ok := d.Events[eventSignature{hatCentered, h.number}]; ok {
-					if v == 0 && h.value != 0 {
-						switch h.axis {
-						case 2:
-							if d.HatAxes[evt.Index+1].value == 0 {
-								c <- when{toDuration(evt.Time)}
-							}
-						case 1:
-							if d.HatAxes[evt.Index-1].value == 0 {
-								c <- when{toDuration(evt.Time)}
-							}
-						}
-					}
-				}
-				d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, h.reversed, toDuration(evt.Time), v}
-			default:
-				// log.Println("unknown input type. ",evt.Type & 0x7f)
 			}
-		} else {
-			break
+			d.HatAxes[evt.Index] = hatAxis{h.number, h.axis, h.reversed, toDuration(evt.Time), v}
+		default:
+			// log.Println("unknown input type. ",evt.Type & 0x7f)
 		}
+
 	}
 }
 
@@ -391,3 +388,5 @@ func (d HID) HatCoords(hat uint8, coords []float32) {
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
+
+
