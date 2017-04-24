@@ -54,7 +54,7 @@ func (d HID) populate() {
 				hatNumber += 1
 			}
 		default:
-			go func() { d.OSEvents <- evt }() // have to consume a real event to know we reached the end of the synthetic burst, so hand it on.
+			go func() { d.OSEvents <- evt }() // have to consume a real event to know we reached the end of the synthetic burst, so refire it.
 			return
 		}
 	}

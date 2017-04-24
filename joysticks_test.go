@@ -29,11 +29,11 @@ func TestHIDsAdvanced(t *testing.T) {
 	b4 := js1.OnClose(4)
 	b5 := js1.OnClose(5)
 	quit := js1.OnOpen(10)
-	h3 := js1.OnMove(3)
+	h3 := js1.OnMove(1)
 	h4 := js1.OnPanX(2)
 	h5 := js1.OnPanY(2)
 	h6 := js1.OnEdge(1)
-	h7 := js1.OnCenter(1)
+	h7 := js1.OnCenter(3)
 	go js1.ParcelOutEvents()
 	time.AfterFunc(time.Second*10, func() { js1.InsertSyntheticEvent(1, 1, 1) }) // value=1 (close),type=1 (button), index=1, so fires b1 after 10 seconds
 
@@ -54,7 +54,7 @@ func TestHIDsAdvanced(t *testing.T) {
 			js1.HatCoords(1, coord)
 			fmt.Println(coord)
 		case h := <-h3:
-			fmt.Printf("hat 3 moved %+v\n", h)
+			fmt.Printf("hat 1 moved %+v\n", h)
 		case h := <-h4:
 			fmt.Println("hat 2 X moved", h.(AxisEvent).V)
 		case h := <-h5:
@@ -62,7 +62,7 @@ func TestHIDsAdvanced(t *testing.T) {
 		case h := <-h6:
 			fmt.Println("hat 1 edged", h.(AngleEvent).Angle)
 		case <-h7:
-			fmt.Println("hat 1 centered")
+			fmt.Println("hat 3 centered")
 		}
 	}
 }

@@ -3,7 +3,6 @@ package joysticks
 import (
 	"math"
 	"time"
-	//	"fmt"
 )
 
 // TODO drag event
@@ -113,9 +112,9 @@ type RadiusEvent struct {
 	Radius float32
 }
 
-// ParcelOutEvents waits on the HID.OSEvent channel (so blocks until OSEvent is closed), then puts the required event(s), on any registered channel(s).
+// ParcelOutEvents waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
 func (d HID) ParcelOutEvents() {
-	for evt := range(d.OSEvents){
+	for evt := range d.OSEvents {
 		switch evt.Type {
 		case 1:
 			b := d.Buttons[evt.Index]
@@ -171,25 +170,25 @@ func (d HID) ParcelOutEvents() {
 			if c, ok := d.Events[eventSignature{hatPosition, h.number}]; ok {
 				switch h.axis {
 				case 2:
-					c <- CoordsEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index+1].value}
+					c <- CoordsEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index-1].value}
 				case 1:
-					c <- CoordsEvent{when{toDuration(evt.Time)}, d.HatAxes[evt.Index-1].value, v}
+					c <- CoordsEvent{when{toDuration(evt.Time)}, d.HatAxes[evt.Index+1].value, v}
 				}
 			}
 			if c, ok := d.Events[eventSignature{hatAngle, h.number}]; ok {
 				switch h.axis {
 				case 2:
-					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
+					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index-1].value)))}
 				case 1:
-					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
+					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index+1].value), float64(v)))}
 				}
 			}
 			if c, ok := d.Events[eventSignature{hatRadius, h.number}]; ok {
 				switch h.axis {
 				case 2:
-					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value)))}
+					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value)))}
 				case 1:
-					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value) + float64(v)*float64(v)))}
+					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value) + float64(v)*float64(v)))}
 				}
 			}
 			if c, ok := d.Events[eventSignature{hatEdge, h.number}]; ok {
@@ -197,9 +196,9 @@ func (d HID) ParcelOutEvents() {
 				if (v == 1 || v == -1) && h.value != 1 && h.value != -1 {
 					switch h.axis {
 					case 2:
-						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index+1].value)))}
+						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index-1].value)))}
 					case 1:
-						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index-1].value), float64(v)))}
+						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index+1].value), float64(v)))}
 					}
 				}
 			}
@@ -207,11 +206,11 @@ func (d HID) ParcelOutEvents() {
 				if v == 0 && h.value != 0 {
 					switch h.axis {
 					case 2:
-						if d.HatAxes[evt.Index+1].value == 0 {
+						if d.HatAxes[evt.Index-1].value == 0 {
 							c <- when{toDuration(evt.Time)}
 						}
 					case 1:
-						if d.HatAxes[evt.Index-1].value == 0 {
+						if d.HatAxes[evt.Index+1].value == 0 {
 							c <- when{toDuration(evt.Time)}
 						}
 					}
@@ -221,7 +220,6 @@ func (d HID) ParcelOutEvents() {
 		default:
 			// log.Println("unknown input type. ",evt.Type & 0x7f)
 		}
-
 	}
 }
 
@@ -388,5 +386,6 @@ func (d HID) HatCoords(hat uint8, coords []float32) {
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
+
 
 
