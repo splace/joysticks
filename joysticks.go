@@ -317,14 +317,14 @@ func (d HID) OnPanY(hat uint8) chan Event {
 	return c
 }
 
-// hat axis-X moved event channel.
+// hat axis-X speed changed event channel.
 func (d HID) OnSpeedX(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSignature{hatVelocityX, hat}] = c
 	return c
 }
 
-// hat axis-Y moved event channel.
+// hat axis-Y speed changed event channel.
 func (d HID) OnSpeedY(hat uint8) chan Event {
 	c := make(chan Event)
 	d.Events[eventSignature{hatVelocityY, hat}] = c

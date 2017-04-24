@@ -5,7 +5,7 @@ uses Linux kernel 'input' interface, available on a wide range of linux devices,
 
 uses go channels to pipe around events, for flexibility and multi-threading.
 
-implements many high-level UI abstractions directly, to enable commonality between projects.(see below)
+implements many high-level UI abstractions directly, to enable commonality between projects.(see On???() HID methods in docs)
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 
@@ -54,21 +54,6 @@ Example: prints event info for pressing button #1 or moving hat#1.(with 10sec ti
 		fmt.Println("Shutting down due to timeout.")
 	}
 
-event types:
-
-	buttonChange
-	buttonClose
-	buttonOpen
-	buttonLongPress
-	buttonDoublePress
-	hatChange
-	hatPanX
-	hatPanY
-	hatPosition
-	hatAngle
-	hatRadius
-	hatCentered
-	hatEdge
 
 
 Note: "jstest-gtk" - system wide mapping and calibration for joysticks.
