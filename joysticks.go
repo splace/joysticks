@@ -170,9 +170,9 @@ func (d HID) ParcelOutEvents() {
 			if c, ok := d.Events[eventSignature{hatPosition, h.number}]; ok {
 				switch h.axis {
 				case 2:
-					c <- CoordsEvent{when{toDuration(evt.Time)}, v, d.HatAxes[evt.Index-1].value}
+					c <- CoordsEvent{when{toDuration(evt.Time)},  d.HatAxes[evt.Index-1].value,v}
 				case 1:
-					c <- CoordsEvent{when{toDuration(evt.Time)}, d.HatAxes[evt.Index+1].value, v}
+					c <- CoordsEvent{when{toDuration(evt.Time)},  v ,d.HatAxes[evt.Index+1].value}
 				}
 			}
 			if c, ok := d.Events[eventSignature{hatAngle, h.number}]; ok {
