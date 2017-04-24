@@ -29,10 +29,11 @@ func TestHIDsAdvanced(t *testing.T) {
 	b4 := js1.OnClose(4)
 	b5 := js1.OnClose(5)
 	quit := js1.OnOpen(10)
+	h3 := js1.OnMove(3)
 	h4 := js1.OnPanX(2)
 	h5 := js1.OnPanY(2)
-	h3 := js1.OnMove(3)
 	h6 := js1.OnEdge(1)
+	h7 := js1.OnCenter(1)
 	go js1.ParcelOutEvents()
 	time.AfterFunc(time.Second*10, func() { js1.InsertSyntheticEvent(1, 1, 1) }) // value=1 (close),type=1 (button), index=1, so fires b1 after 10 seconds
 
@@ -60,6 +61,8 @@ func TestHIDsAdvanced(t *testing.T) {
 			fmt.Printf("hat 2 Y moved %+v\n", h)
 		case h := <-h6:
 			fmt.Println("hat 1 edged", h.(AngleEvent).Angle)
+		case h<-h7:
+			fmt.Println("hat 1 centered")
 		}
 	}
 }
@@ -131,4 +134,8 @@ func play(s Sound) {
 	}
 }
 
+/*  Hal3 Mon 24 Apr 17:08:32 BST 2017 go version go1.6.2 linux/amd64
+FAIL	_/home/simon/Dropbox/github/working/joysticks [build failed]
+Mon 24 Apr 17:08:32 BST 2017
+*/
 
