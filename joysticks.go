@@ -272,21 +272,21 @@ func Duplicator(c chan Event)(chan Event,chan Event){
 }
 
 
-// regularly repeat a when event, on receiving any event on the first parameter chan, until any event on second chan parameter.
-// remembers interval, so can make different duration Repeaters by changing DefaultRepeat.
+// creates a channel that, after receiving any event on the first parameter chan, and until any event on second chan parameter, regularly receives when events.
+// the repeat interval is DefaultRepeat, and is stored, so retriggering is not effected by changing DefaultRepeat.
 func Repeater(c1,c2 chan Event)(chan Event){
 	c := make(chan Event)
-	interval:=DefaultRepeat
 	go func(){
+		interval:=DefaultRepeat
 		var ticker *time.Ticker
 		for {
 			e:= <-c1
-			go func(startTime time.Time){
+			go func(interval time.Duration, startTime time.Time){
 				ticker=time.NewTicker(interval)
 				for t:=range ticker.C{
 					c <- when{e.Moment()+t.Sub(startTime)}
 				}
-			}(time.Now())
+			}(interval, time.Now())
 			<-c2
 			ticker.Stop()
 		}

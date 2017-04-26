@@ -44,9 +44,11 @@ func TestHIDsAdvanced(t *testing.T) {
 		case <-quit:
 			return
 		case <-b1:
+			DefaultRepeat=time.Second		
 			play(NewSound(NewTone(time.Second/440, 1), time.Second/3))
 		case <-b2:
 			play(NewSound(NewTone(time.Second/660, 1), time.Second/3))
+			b5r = Repeater(js1.OnClose(5),js1.OnOpen(5))
 		case <-b3:
 			play(NewSound(NewTone(time.Second/250, 1), time.Second/3))
 		case <-b4:
@@ -133,6 +135,5 @@ func play(s Sound) {
 		panic(err)
 	}
 }
-
 
 
