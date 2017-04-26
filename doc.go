@@ -15,7 +15,7 @@ Use methods to add (or alter) 'Event' channels.
 
 Start running by calling 'ParcelOutEvents()'.
 
-(event index to channel mappings can be changed dynamically.)
+(unlike highlevel, event index to channel mappings can be changed dynamically.)
 
 Lowlevel
 
@@ -27,7 +27,7 @@ Interface
 
 'Event' interface, provides a time.Duration through a call to the Moment() method, returning whatever the underlying Linux driver provides as the events timestamp, as a time.Duration.
 
-returned 'Event's need asserting to their underlying type to access data other than moment.
+returned 'Event's need asserting to their underlying type ( '***Event' ) to access data other than moment.
 
 */
 package joysticks

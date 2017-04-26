@@ -5,7 +5,9 @@ uses Linux kernel 'input' interface, available on a wide range of linux devices,
 
 uses go channels to pipe around events, for flexibility and multi-threading.
 
-implements many high-level UI abstractions directly, to enable commonality between projects.(see On???() HID methods in docs)
+make event channels from methods on HID type.  'HID.On***()'  
+
+also some higher-level UI abstractions to help standard usage.
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 

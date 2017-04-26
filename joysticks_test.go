@@ -31,7 +31,7 @@ func TestHIDsAdvanced(t *testing.T) {
 	b5r := Repeater(js1.OnClose(5),js1.OnOpen(5))
 	
 	quit := js1.OnOpen(10)
-	h3 := js1.OnMove(1)
+	h3 :=  PositionFromVelocity(js1.OnMove(1))
 	h4 := js1.OnPanX(2)
 	h5 := js1.OnPanY(2)
 	h6 := js1.OnEdge(1)
@@ -100,10 +100,11 @@ func TestHIDsMutipleCapture(t *testing.T) {
 		Channel{1, HID.OnClose}, 
 	)
 	hatEvents := Capture(
-		Channel{1, HID.OnMove},  
+		Channel{1, HID.OnHat},  
 		Channel{2, HID.OnSpeedX},
 		Channel{2, HID.OnPanX},
 	)
+
 	var x float32 = .5
 	var f time.Duration = time.Second / 440
 	for {

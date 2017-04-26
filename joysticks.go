@@ -8,9 +8,9 @@ import (
 
 // TODO drag event
 // TODO move plus edge continue events (self generating)
-// TODO smoothed/hysteresis
+// TODO smoother from PID
 
-// TODO integrate event
+// TODO integration event
 // TODO repeated event dropper
 
 var LongPressDelay = time.Second / 2
@@ -271,6 +271,34 @@ func Duplicator(c chan Event)(chan Event,chan Event){
 	return c1,c2
 }
 
+// 
+func PositionFromVelocity(c chan Event) chan Event{
+	extra := make(chan Event)
+	go func(){
+		var x,y float32
+		var lt time.Duration
+		for e:=range c{
+			if ce,ok:= e.(CoordsEvent);ok{
+				lt=ce.Moment()
+				break
+			}
+		}		
+		for e:=range c{
+			if ce,ok:=e.(CoordsEvent);ok{
+				dt:=(ce.Moment()-lt).Seconds()
+				if dt>0 {
+					x+=float32(float64(ce.X)/dt)
+					y+=float32(float64(ce.Y)/dt)
+					lt=	ce.Moment()
+					extra <-CoordsEvent{when{e.Moment()},x,y}			
+					lt=	ce.Moment()
+				}
+			}
+		}
+	}()
+	return extra
+}
+
 
 // creates a channel that, after receiving any event on the first parameter chan, and until any event on second chan parameter, regularly receives when events.
 // the repeat interval is DefaultRepeat, and is stored, so retriggering is not effected by changing DefaultRepeat.
@@ -443,6 +471,5 @@ func (d HID) HatCoords(hat uint8, coords []float32) {
 func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
-
 
 
