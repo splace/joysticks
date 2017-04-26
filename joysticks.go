@@ -3,6 +3,7 @@ package joysticks
 import (
 	"math"
 	"time"
+	//"fmt"
 )
 
 // TODO drag event
@@ -10,12 +11,11 @@ import (
 // TODO smoothed/hysteresis
 
 // TODO integrate event
-// TODO event repeater
-// TODO event duplicator
-// TODO repeat event dropper
+// TODO repeated event dropper
 
 var LongPressDelay = time.Second / 2
 var DoublePressDelay = time.Second / 10
+var DefaultRepeat = time.Second /4
 
 type hatAxis struct {
 	number   uint8
@@ -72,12 +72,13 @@ type Event interface {
 }
 
 type when struct {
-	time time.Duration
+	Time time.Duration
 }
 
 func (b when) Moment() time.Duration {
-	return b.time
+	return b.Time
 }
+
 
 // button changed
 type ButtonEvent struct {
@@ -256,7 +257,7 @@ func Capture(registrees ...Channel) []chan Event {
 }
 
 // duplicate event onto two chan's
-func TeeEvents(c chan Event)(chan Event,chan Event){
+func Duplicator(c chan Event)(chan Event,chan Event){
 	c1 := make(chan Event)
 	c2 := make(chan Event)
 	go func(){
@@ -268,6 +269,29 @@ func TeeEvents(c chan Event)(chan Event,chan Event){
 		close(c2)
 	}()
 	return c1,c2
+}
+
+
+// regularly repeat a when event, on receiving any event on the first parameter chan, until any event on second chan parameter.
+// remembers interval, so can make different duration Repeaters by changing DefaultRepeat.
+func Repeater(c1,c2 chan Event)(chan Event){
+	c := make(chan Event)
+	interval:=DefaultRepeat
+	go func(){
+		var ticker *time.Ticker
+		for {
+			e:= <-c1
+			go func(startTime time.Time){
+				ticker=time.NewTicker(interval)
+				for t:=range ticker.C{
+					c <- when{e.Moment()+t.Sub(startTime)}
+				}
+			}(time.Now())
+			<-c2
+			ticker.Stop()
+		}
+	}()
+	return c
 }
 
 
@@ -421,8 +445,4 @@ func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 }
 
 
-/*  Hal3 Wed 26 Apr 19:04:12 BST 2017 go version go1.6.2 linux/amd64
-FAIL	_/home/simon/Dropbox/github/working/joysticks [build failed]
-Wed 26 Apr 19:04:20 BST 2017
-*/
 

@@ -27,7 +27,9 @@ func TestHIDsAdvanced(t *testing.T) {
 	b2 := js1.OnClose(2)
 	b3 := js1.OnClose(3)
 	b4 := js1.OnClose(4)
-	b5 := js1.OnClose(5)
+	DefaultRepeat=time.Second/10
+	b5r := Repeater(js1.OnClose(5),js1.OnOpen(5))
+	
 	quit := js1.OnOpen(10)
 	h3 := js1.OnMove(1)
 	h4 := js1.OnPanX(2)
@@ -49,10 +51,8 @@ func TestHIDsAdvanced(t *testing.T) {
 			play(NewSound(NewTone(time.Second/250, 1), time.Second/3))
 		case <-b4:
 			play(NewSound(NewTone(time.Second/150, 1), time.Second/3))
-		case <-b5:
-			coord := make([]float32, 2)
-			js1.HatCoords(1, coord)
-			fmt.Println(coord)
+		case <-b5r:
+			go play(NewSound(NewTone(time.Second/440, 1), time.Second/20))
 		case h := <-h3:
 			fmt.Printf("hat 1 moved %+v\n", h)
 		case h := <-h4:
