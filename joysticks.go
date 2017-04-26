@@ -7,6 +7,12 @@ import (
 
 // TODO drag event
 // TODO move plus edge continue events (self generating)
+// TODO smoothed/hysteresis
+
+// TODO integrate event
+// TODO event repeater
+// TODO event duplicator
+// TODO repeat event dropper
 
 var LongPressDelay = time.Second / 2
 var DoublePressDelay = time.Second / 10
@@ -152,13 +158,6 @@ func (d HID) ParcelOutEvents() {
 				c <- HatEvent{when{toDuration(evt.Time)}, h.number, h.axis, v}
 			}
 			switch h.axis {
-			case 2:
-				if c, ok := d.Events[eventSignature{hatPanX, h.number}]; ok {
-					c <- AxisEvent{when{toDuration(evt.Time)}, v}
-				}
-				if c, ok := d.Events[eventSignature{hatVelocityX, h.number}]; ok {
-					c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
-				}
 			case 1:
 				if c, ok := d.Events[eventSignature{hatPanY, h.number}]; ok {
 					c <- AxisEvent{when{toDuration(evt.Time)}, v}
@@ -166,39 +165,46 @@ func (d HID) ParcelOutEvents() {
 				if c, ok := d.Events[eventSignature{hatVelocityY, h.number}]; ok {
 					c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
 				}
+			case 2:
+				if c, ok := d.Events[eventSignature{hatPanX, h.number}]; ok {
+					c <- AxisEvent{when{toDuration(evt.Time)}, v}
+				}
+				if c, ok := d.Events[eventSignature{hatVelocityX, h.number}]; ok {
+					c <- AxisEvent{when{toDuration(evt.Time)}, (v-d.HatAxes[evt.Index].value)/float32((toDuration(evt.Time)-d.HatAxes[evt.Index].time).Seconds())}
+				}
 			}
 			if c, ok := d.Events[eventSignature{hatPosition, h.number}]; ok {
 				switch h.axis {
-				case 2:
-					c <- CoordsEvent{when{toDuration(evt.Time)},  d.HatAxes[evt.Index-1].value,v}
 				case 1:
 					c <- CoordsEvent{when{toDuration(evt.Time)},  v ,d.HatAxes[evt.Index+1].value}
+				case 2:
+					c <- CoordsEvent{when{toDuration(evt.Time)},  d.HatAxes[evt.Index-1].value,v}
 				}
 			}
 			if c, ok := d.Events[eventSignature{hatAngle, h.number}]; ok {
 				switch h.axis {
-				case 2:
-					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index-1].value)))}
 				case 1:
 					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index+1].value), float64(v)))}
+				case 2:
+					c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index-1].value)))}
 				}
 			}
 			if c, ok := d.Events[eventSignature{hatRadius, h.number}]; ok {
 				switch h.axis {
-				case 2:
-					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value)))}
 				case 1:
 					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(d.HatAxes[evt.Index+1].value)*float64(d.HatAxes[evt.Index+1].value) + float64(v)*float64(v)))}
+				case 2:
+					c <- RadiusEvent{when{toDuration(evt.Time)}, float32(math.Sqrt(float64(v)*float64(v) + float64(d.HatAxes[evt.Index-1].value)*float64(d.HatAxes[evt.Index-1].value)))}
 				}
 			}
 			if c, ok := d.Events[eventSignature{hatEdge, h.number}]; ok {
 				// fmt.Println(v,h)
 				if (v == 1 || v == -1) && h.value != 1 && h.value != -1 {
 					switch h.axis {
-					case 2:
-						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index-1].value)))}
 					case 1:
 						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(d.HatAxes[evt.Index+1].value), float64(v)))}
+					case 2:
+						c <- AngleEvent{when{toDuration(evt.Time)}, float32(math.Atan2(float64(v), float64(d.HatAxes[evt.Index-1].value)))}
 					}
 				}
 			}
@@ -248,6 +254,23 @@ func Capture(registrees ...Channel) []chan Event {
 	}
 	return chans
 }
+
+// duplicate event onto two chan's
+func TeeEvents(c chan Event)(chan Event,chan Event){
+	c1 := make(chan Event)
+	c2 := make(chan Event)
+	go func(){
+		for e:=range c{
+			c1 <- e
+			c2 <- e
+		}
+		close(c1)
+		close(c2)
+	}()
+	return c1,c2
+}
+
+
 
 // button changes event channel.
 func (d HID) OnButton(button uint8) chan Event {
@@ -347,6 +370,16 @@ func (d HID) OnEdge(hat uint8) chan Event {
 	return c
 }
 
+// hat integrate
+//func (d HID) OnIntegrate(c Channel) chan Event {
+//	var e,le Event
+//	e:=Event{}
+//	c := make(chan Event)
+//	d.Events[eventSignature{hatEdge, hat}] = c
+//	return c
+//}
+
+
 // see if Button exists.
 func (d HID) ButtonExists(button uint8) (ok bool) {
 	for _, v := range d.Buttons {
@@ -388,4 +421,8 @@ func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 }
 
 
+/*  Hal3 Wed 26 Apr 19:04:12 BST 2017 go version go1.6.2 linux/amd64
+FAIL	_/home/simon/Dropbox/github/working/joysticks [build failed]
+Wed 26 Apr 19:04:20 BST 2017
+*/
 
