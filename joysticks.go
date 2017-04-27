@@ -276,22 +276,17 @@ func PositionFromVelocity(c chan Event) chan Event{
 	extra := make(chan Event)
 	go func(){
 		var x,y float32
-		var lt time.Duration
+		e:= <-c
+		lm:=e.Moment()
 		for e:=range c{
-			if ce,ok:= e.(CoordsEvent);ok{
-				lt=ce.Moment()
-				break
-			}
-		}		
-		for e:=range c{
+			m:=e.Moment()
 			if ce,ok:=e.(CoordsEvent);ok{
-				dt:=(ce.Moment()-lt).Seconds()
+				dt:=(m-lm).Seconds()
 				if dt>0 {
 					x+=float32(float64(ce.X)/dt)
 					y+=float32(float64(ce.Y)/dt)
-					lt=	ce.Moment()
-					extra <-CoordsEvent{when{e.Moment()},x,y}			
-					lt=	ce.Moment()
+					extra <-CoordsEvent{when{m},x,y}			
+					lm=	m
 				}
 			}
 		}
