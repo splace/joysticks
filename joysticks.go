@@ -272,7 +272,8 @@ func Duplicator(c chan Event)(chan Event,chan Event){
 	return c1,c2
 }
 
-// does nothing if parameter chan doesn't give CoordsEvent's
+
+// creates a chan on which are CoordsEvent's that are the time integration of CoordsEvent's on the parameter chan. 
 func PositionFromVelocity(c chan Event) chan Event{
 	extra := make(chan Event)
 	var x,y,vx,vy float32

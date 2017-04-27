@@ -7,7 +7,7 @@ uses go channels to pipe around events, for flexibility and multi-threading.
 
 make event channels from methods on HID type.  'HID.On***()'  
 
-also some higher-level UI abstractions to help standard usage.
+also some higher-level event modifiers for common UI abstractions, to help standard usage.
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 
