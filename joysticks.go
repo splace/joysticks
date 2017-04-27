@@ -275,30 +275,36 @@ func Duplicator(c chan Event)(chan Event,chan Event){
 // does nothing if parameter chan doesn't give CoordsEvent's
 func PositionFromVelocity(c chan Event) chan Event{
 	extra := make(chan Event)
-	var x,y float32
+	var x,y,vx,vy float32
 	var startTime time.Time
 	var startMoment time.Duration
+	var m time.Duration
+	ticker:=time.NewTicker(VelocityRepeat)
 	go func(){
 		e:= <-c
 		startTime=time.Now()
 		startMoment=e.Moment()
 		lm:=startMoment
 		for e:=range c{
-			m:=e.Moment()
 			if ce,ok:=e.(CoordsEvent);ok{
-				dt:=(m-lm).Seconds()
-				x+=float32(float64(ce.X)*dt)
-				y+=float32(float64(ce.Y)*dt)
+				m=e.Moment()
+				vx,vy=ce.X,ce.Y
+				dt:=float32((m-lm).Seconds())
+				x+=vx*dt
+				y+=vy*dt
 				lm=	m
 			}
 		}
+		ticker.Stop()
 	}()
 	go func(){
-		ticker:=time.NewTicker(VelocityRepeat)
+		var nx,ny float32
+		lt:=time.Now()
 		for t:=range ticker.C{
-			extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},x,y}			
+			nx,ny=x,y
+			dt:=float32(t.Sub(lt).Seconds())
+			extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},nx+dt*vx,ny+dt*vy}			
 		}
-		ticker.Stop()
 	}()
 
 	return extra
