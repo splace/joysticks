@@ -16,6 +16,7 @@ import (
 var LongPressDelay = time.Second / 2
 var DoublePressDelay = time.Second / 10
 var DefaultRepeat = time.Second /4
+var VelocityRepeat =  time.Second / 10
 
 type hatAxis struct {
 	number   uint8
@@ -271,13 +272,17 @@ func Duplicator(c chan Event)(chan Event,chan Event){
 	return c1,c2
 }
 
-// 
+// does nothing if parameter chan doesn't give CoordsEvent's
 func PositionFromVelocity(c chan Event) chan Event{
 	extra := make(chan Event)
+	var x,y float32
+	var startTime time.Time
+	var startMoment time.Duration
 	go func(){
-		var x,y float32
 		e:= <-c
-		lm:=e.Moment()
+		startTime=time.Now()
+		startMoment=e.Moment()
+		lm:=startMoment
 		for e:=range c{
 			m:=e.Moment()
 			if ce,ok:=e.(CoordsEvent);ok{
@@ -285,17 +290,24 @@ func PositionFromVelocity(c chan Event) chan Event{
 				if dt>0 {
 					x+=float32(float64(ce.X)/dt)
 					y+=float32(float64(ce.Y)/dt)
-					extra <-CoordsEvent{when{m},x,y}			
 					lm=	m
 				}
 			}
 		}
 	}()
+	go func(){
+		ticker:=time.NewTicker(VelocityRepeat)
+		for t:=range ticker.C{
+			extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},x,y}			
+		}
+		ticker.Stop()
+	}()
+
 	return extra
 }
 
 
-// creates a channel that, after receiving any event on the first parameter chan, and until any event on second chan parameter, regularly receives when events.
+// creates a channel that, after receiving any event on the first parameter chan, and until any event on second chan parameter, regularly receives 'when' events.
 // the repeat interval is DefaultRepeat, and is stored, so retriggering is not effected by changing DefaultRepeat.
 func Repeater(c1,c2 chan Event)(chan Event){
 	c := make(chan Event)
