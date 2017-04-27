@@ -303,7 +303,8 @@ func PositionFromVelocity(c chan Event) chan Event{
 		for t:=range ticker.C{
 			nx,ny=x,y
 			dt:=float32(t.Sub(lt).Seconds())
-			extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},nx+dt*vx,ny+dt*vy}			
+			extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},nx+dt*vx,ny+dt*vy}	
+			lt=t		
 		}
 	}()
 
