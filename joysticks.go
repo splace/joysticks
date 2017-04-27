@@ -290,10 +290,10 @@ func PositionFromVelocity(c chan Event) chan Event{
 			if ce,ok:=e.(CoordsEvent);ok{
 				lt=time.Now()
 				m=e.Moment()
-				vx,vy=ce.X,ce.Y
 				dt:=float32((m-lm).Seconds())
 				x+=vx*dt
 				y+=vy*dt
+				vx,vy=ce.X,ce.Y
 				lm=	m
 			}
 		}
