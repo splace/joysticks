@@ -279,6 +279,7 @@ func PositionFromVelocity(c chan Event) chan Event{
 	var startTime time.Time
 	var startMoment time.Duration
 	var m time.Duration
+	var lt time.Time
 	ticker:=time.NewTicker(VelocityRepeat)
 	go func(){
 		e:= <-c
@@ -287,6 +288,7 @@ func PositionFromVelocity(c chan Event) chan Event{
 		lm:=startMoment
 		for e:=range c{
 			if ce,ok:=e.(CoordsEvent);ok{
+				lt=time.Now()
 				m=e.Moment()
 				vx,vy=ce.X,ce.Y
 				dt:=float32((m-lm).Seconds())
@@ -299,7 +301,6 @@ func PositionFromVelocity(c chan Event) chan Event{
 	}()
 	go func(){
 		var nx,ny float32
-		lt:=time.Now()
 		for t:=range ticker.C{
 			if vx!=0 || vy!=0{
 				nx,ny=x,y
