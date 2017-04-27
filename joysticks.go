@@ -300,11 +300,14 @@ func PositionFromVelocity(c chan Event) chan Event{
 		ticker.Stop()
 	}()
 	go func(){
-		var nx,ny float32
+		var lx,ly,nx,ny,dt float32
 		for t:=range ticker.C{
-			nx,ny=x,y
-			dt:=float32(t.Sub(lt).Seconds())
-			extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},nx+dt*vx,ny+dt*vy}	
+			dt=float32(t.Sub(lt).Seconds())
+			nx,ny=x+dt*vx,y+dt*vy
+			if nx!=lx || ny!=ly {
+				extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},nx,ny}	
+				lx,ly=nx,ny
+			}
 		}
 	}()
 
