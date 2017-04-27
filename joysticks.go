@@ -306,7 +306,6 @@ func PositionFromVelocity(c chan Event) chan Event{
 				nx,ny=x,y
 				dt:=float32(t.Sub(lt).Seconds())
 				extra <-CoordsEvent{when{startMoment+t.Sub(startTime)},nx+dt*vx,ny+dt*vy}	
-				lt=t		
 			}
 		}
 	}()
