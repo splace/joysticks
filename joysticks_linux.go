@@ -23,9 +23,9 @@ const maxValue = 1<<15 - 1
 var inputPathSlice = []byte("/dev/input/js ")[0:13]
 
 // Connect sets up a go routine that puts a joysticks events onto registered channels.
-// register channels by using the returned HID object's On<xxx>(index) methods.
-// Note: only one event, of each type '<xxx>', for each 'index', re-registering, or deleting, event stops events going on the old channel.
-// needs HID objects ParcelOutEvents() method to perform piping.(usually in a go routine.)
+// to register channels use the returned HID object's On<xxx>(index) methods.
+// Note: only one event, of each type '<xxx>', for each 'index', so re-registering, or deleting, an event stops events going on the old channel.
+// needs the HID objects ParcelOutEvents() method to be called to perform.(usually in a go routine.)
 func Connect(index int) (d *HID) {
 	r, e := os.OpenFile(string(strconv.AppendUint(inputPathSlice, uint64(index-1), 10)), os.O_RDWR, 0)
 	if e != nil {

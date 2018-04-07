@@ -111,7 +111,7 @@ type RadiusEvent struct {
 	Radius float32
 }
 
-// ParcelOutEvents waits on the HID.OSEvent channel (so is blocking), then puts the required event(s), on any registered channel(s).
+// ParcelOutEvents waits on the HID.OSEvent channel (so is blocking), then puts any events matching onto any registered channel(s).
 func (d HID) ParcelOutEvents() {
 	for evt := range d.OSEvents {
 		switch evt.Type {
@@ -382,7 +382,8 @@ func (d HID) ButtonClosed(button uint8) bool {
 	return d.Buttons[button].value
 }
 
-// Hat latest position. (coords slice needs to be long enough to hold all axis.)
+// Hat latest position.
+// provided coords slice needs to be long enough to hold all the hat's axis.
 func (d HID) HatCoords(hat uint8, coords []float32) {
 	for _, h := range d.HatAxes {
 		if h.number == hat {
@@ -397,8 +398,4 @@ func (d HID) InsertSyntheticEvent(v int16, t uint8, i uint8) {
 	d.OSEvents <- osEventRecord{Value: v, Type: t, Index: i}
 }
 
-/*  Hal3 Sun 30 Apr 17:59:02 BST 2017 go version go1.6.2 linux/amd64
-FAIL	_/home/simon/Dropbox/github/working/joysticks [build failed]
-Sun 30 Apr 17:59:09 BST 2017
-*/
 

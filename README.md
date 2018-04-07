@@ -1,9 +1,12 @@
 # joysticks
+
 Go language joystick/controller/gamepad input.
 
 uses Linux kernel 'input' interface, available on a wide range of linux devices, to receive events directly, no polling.
 
 uses go channels to pipe around events, for flexibility and multi-threading.
+
+# Operation
 
 make event channels from methods on HID type.  'HID.On***()'  
 
@@ -11,11 +14,13 @@ also some higher-level event modifiers for common UI abstractions, to help stand
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 
-Installation:
+# Installation:
 
      go get github.com/splace/joysticks
 
-Example: prints event info for pressing button #1 or moving hat#1.(with 10sec timeout.) 
+# Example: 
+
+print out event info when pressing button #1 or moving hat#1.(with 10sec timeout.) 
 
 	package main
 
