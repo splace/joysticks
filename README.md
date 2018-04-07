@@ -38,7 +38,7 @@ simply block until button one pressed.
 
 Midlevel (allows device interrogation and event re-assigning.) 
 
-print out description of events when pressing button #1 or moving hat#1.(with 10sec timeout.) 
+log description of events when pressing button #1 or moving hat#1.(with 10sec timeout.) 
 
 	package main
 
