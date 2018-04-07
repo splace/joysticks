@@ -57,12 +57,12 @@ print out event info when pressing button #1 or moving hat#1.(with 10sec timeout
 		}()
 	
 		fmt.Println("Timeout in 10 secs.")
-		<-time.After(time.Second*10)
+		time.Sleep(time.Second*10)
 		fmt.Println("Shutting down due to timeout.")
 	}
 
 
 
-Note: "jstest-gtk" - system wide mapping and calibration for joysticks.
+Note: "jstest-gtk" - gtk mapping and calibration for joysticks.
 
 
