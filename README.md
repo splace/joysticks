@@ -18,9 +18,23 @@ Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.sv
 
      go get github.com/splace/joysticks
 
-# Example: 
+# Examples: 
 
-print out event info when pressing button #1 or moving hat#1.(with 10sec timeout.) 
+highlevel: block until button one pressed.
+
+	package main
+
+	import . "github.com/splace/joysticks"
+
+	func main() {
+		evts := Capture(
+			Channel{1, HID.OnClose},  // event[0] chan set to receive button #1 closes events
+		)
+		<-evts[0]
+	}
+
+
+print out description of event when pressing button #1 or moving hat#1.(with 10sec timeout.) 
 
 	package main
 
@@ -34,6 +48,8 @@ print out event info when pressing button #1 or moving hat#1.(with 10sec timeout
 		if device == nil {
 			panic("no HIDs")
 		}
+
+		// using Connect allows a device to be interrogated
 		fmt.Printf("HID#1:- Buttons:%d, Hats:%d\n", len(device.Buttons), len(device.HatAxes)/2)
 
 		// make channels for specific events
