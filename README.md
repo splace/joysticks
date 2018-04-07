@@ -56,11 +56,11 @@ log description of events when pressing button #1 or moving hat#1.(with 10sec ti
 		// using Connect allows a device to be interrogated
 		log.Printf("HID#1:- Buttons:%d, Hats:%d\n", len(device.Buttons), len(device.HatAxes)/2)
 
-		// make channels for specific events
+		// get/assign channels for specific events
 		b1press := device.OnClose(1)
 		h1move := device.OnMove(1)
 
-		// feed OS events onto the event channels. 
+		// start feeding OS events onto the event channels. 
 		go device.ParcelOutEvents()
 
 		// handle event channels
