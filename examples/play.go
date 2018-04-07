@@ -44,10 +44,10 @@ func main() {
 		case <-events[3]:
 			octave--
 		case h := <-events[4]:
-			volume = h.(HatAngleEvent).Angle/6.28 + .5
+			volume = h.(AngleEvent).Angle/6.28 + .5
 		case h := <-events[5]:
 			//f = time.Duration(100*math.Pow(2, float64(h.(HatAngleEvent).Angle)/6.28)) * time.Second / 44000
-			note = int(h.(HatAngleEvent).Angle*6 / math.Pi)+6
+			note = int(h.(AngleEvent).Angle*6 / math.Pi)+6
 			play(NewSound(NewTone(Period(octave,note), float64(volume)), time.Second/3))
 		}
 	}
@@ -67,6 +67,4 @@ func play(s Sound) {
 	}
 	log.Println("Playing:",s)
 } 
-
-
 
