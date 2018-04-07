@@ -47,6 +47,8 @@ log description of events when pressing button #1 or moving hat#1.(with 10sec ti
 	import  "time"
 
 	func main() {
+		// try connecting to specific controller.
+		// system assigned index: typically increments on each new controller added.
 		device := Connect(1)
 
 		if device == nil {
