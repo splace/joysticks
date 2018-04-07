@@ -43,7 +43,7 @@ print out description of events when pressing button #1 or moving hat#1.(with 10
 	package main
 
 	import . "github.com/splace/joysticks"
-	import "fmt"
+	import "log"
 	import  "time"
 
 	func main() {
@@ -52,9 +52,9 @@ print out description of events when pressing button #1 or moving hat#1.(with 10
 		if device == nil {
 			panic("no HIDs")
 		}
-
+	
 		// using Connect allows a device to be interrogated
-		fmt.Printf("HID#1:- Buttons:%d, Hats:%d\n", len(device.Buttons), len(device.HatAxes)/2)
+		log.Printf("HID#1:- Buttons:%d, Hats:%d\n", len(device.Buttons), len(device.HatAxes)/2)
 
 		// make channels for specific events
 		b1press := device.OnClose(1)
@@ -68,19 +68,18 @@ print out description of events when pressing button #1 or moving hat#1.(with 10
 			for{
 				select {
 				case <-b1press:
-					fmt.Println("button #1 pressed")
+					log.Println("button #1 pressed")
 				case h := <-h1move:
 					hpos:=h.(CoordsEvent)
-					fmt.Println("hat #1 moved too:", hpos.X,hpos.Y)
+					log.Println("hat #1 moved too:", hpos.X,hpos.Y)
 				}
 			}
 		}()
-	
-		fmt.Println("Timeout in 10 secs.")
-		time.Sleep(time.Second*10)
-		fmt.Println("Shutting down due to timeout.")
-	}
 
+		log.Println("Timeout in 10 secs.")
+		time.Sleep(time.Second*10)
+		log.Println("Shutting down due to timeout.")
+	}
 
 
 Note: "jstest-gtk" - gtk mapping and calibration for joysticks.
