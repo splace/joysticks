@@ -20,7 +20,9 @@ Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.sv
 
 # Examples: 
 
-highlevel: block until button one pressed.
+highlevel (automates Connect,device event chan creation and Parcelling out events): 
+
+simply block until button one pressed.
 
 	package main
 
@@ -34,7 +36,9 @@ highlevel: block until button one pressed.
 	}
 
 
-print out description of event when pressing button #1 or moving hat#1.(with 10sec timeout.) 
+Midlevel (allows device interrogation and event re-assigning.) 
+
+print out description of events when pressing button #1 or moving hat#1.(with 10sec timeout.) 
 
 	package main
 
