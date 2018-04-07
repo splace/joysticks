@@ -28,7 +28,7 @@ highlevel: block until button one pressed.
 
 	func main() {
 		evts := Capture(
-			Channel{1, HID.OnClose},  // event[0] chan set to receive button #1 closes events
+			Channel{1, HID.OnClose},  // chan index#0 set to receive button #1 closes events
 		)
 		<-evts[0]
 	}
