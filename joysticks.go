@@ -250,100 +250,100 @@ func Capture(registrees ...Channel) []chan Event {
 
 
 // button changes event channel.
-func (d HID) OnButton(button uint8) chan Event {
+func (d HID) OnButton(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonChange, button}] = c
+	d.Events[eventSignature{buttonChange, index}] = c
 	return c
 }
 
 // button goes open event channel.
-func (d HID) OnOpen(button uint8) chan Event {
+func (d HID) OnOpen(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonOpen, button}] = c
+	d.Events[eventSignature{buttonOpen, index}] = c
 	return c
 }
 
 // button goes closed event channel.
-func (d HID) OnClose(button uint8) chan Event {
+func (d HID) OnClose(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonClose, button}] = c
+	d.Events[eventSignature{buttonClose, index}] = c
 	return c
 }
 
 // button goes open and the previous event, closed, was more than LongPressDelay ago, event channel.
-func (d HID) OnLong(button uint8) chan Event {
+func (d HID) OnLong(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonLongPress, button}] = c
+	d.Events[eventSignature{buttonLongPress, index}] = c
 	return c
 }
 
 // button goes closed and the previous event, open, was less than DoublePressDelay ago, event channel.
-func (d HID) OnDouble(button uint8) chan Event {
+func (d HID) OnDouble(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{buttonDoublePress, button}] = c
+	d.Events[eventSignature{buttonDoublePress, index}] = c
 	return c
 }
 
 // hat moved event channel.
-func (d HID) OnHat(hat uint8) chan Event {
+func (d HID) OnHat(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatChange, hat}] = c
+	d.Events[eventSignature{hatChange, index}] = c
 	return c
 }
 
 // hat position changed event channel.
-func (d HID) OnMove(hat uint8) chan Event {
+func (d HID) OnMove(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatPosition, hat}] = c
+	d.Events[eventSignature{hatPosition, index}] = c
 	return c
 }
 
 // hat axis-X moved event channel.
-func (d HID) OnPanX(hat uint8) chan Event {
+func (d HID) OnPanX(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatPanX, hat}] = c
+	d.Events[eventSignature{hatPanX, index}] = c
 	return c
 }
 
 // hat axis-Y moved event channel.
-func (d HID) OnPanY(hat uint8) chan Event {
+func (d HID) OnPanY(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatPanY, hat}] = c
+	d.Events[eventSignature{hatPanY, index}] = c
 	return c
 }
 
 // hat axis-X speed changed event channel.
-func (d HID) OnSpeedX(hat uint8) chan Event {
+func (d HID) OnSpeedX(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatVelocityX, hat}] = c
+	d.Events[eventSignature{hatVelocityX, index}] = c
 	return c
 }
 
 // hat axis-Y speed changed event channel.
-func (d HID) OnSpeedY(hat uint8) chan Event {
+func (d HID) OnSpeedY(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatVelocityY, hat}] = c
+	d.Events[eventSignature{hatVelocityY, index}] = c
 	return c
 }
 
 // hat angle changed event channel.
-func (d HID) OnRotate(hat uint8) chan Event {
+func (d HID) OnRotate(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatAngle, hat}] = c
+	d.Events[eventSignature{hatAngle, index}] = c
 	return c
 }
 
 // hat moved event channel.
-func (d HID) OnCenter(hat uint8) chan Event {
+func (d HID) OnCenter(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatCentered, hat}] = c
+	d.Events[eventSignature{hatCentered, index}] = c
 	return c
 }
 
 // hat moved to edge
-func (d HID) OnEdge(hat uint8) chan Event {
+func (d HID) OnEdge(index uint8) chan Event {
 	c := make(chan Event)
-	d.Events[eventSignature{hatEdge, hat}] = c
+	d.Events[eventSignature{hatEdge, index}] = c
 	return c
 }
 
@@ -357,8 +357,8 @@ func (d HID) OnEdge(hat uint8) chan Event {
 //}
 
 
-// see if Button exists.
-func (d HID) ButtonExists(button uint8) (ok bool) {
+// see if Device exists.
+func DeviceExists(index uint8) (ok bool) {
 	for _, v := range d.Buttons {
 		if v.number == button {
 			return true
@@ -367,10 +367,20 @@ func (d HID) ButtonExists(button uint8) (ok bool) {
 	return
 }
 
+// see if Button exists.
+func (d HID) ButtonExists(index uint8) (ok bool) {
+	for _, v := range d.Buttons {
+		if v.number == index {
+			return true
+		}
+	}
+	return
+}
+
 // see if Hat exists.
-func (d HID) HatExists(hat uint8) (ok bool) {
+func (d HID) HatExists(index uint8) (ok bool) {
 	for _, v := range d.HatAxes {
-		if v.number == hat {
+		if v.number == index {
 			return true
 		}
 	}
@@ -378,15 +388,15 @@ func (d HID) HatExists(hat uint8) (ok bool) {
 }
 
 // Button current state.
-func (d HID) ButtonClosed(button uint8) bool {
-	return d.Buttons[button].value
+func (d HID) ButtonClosed(index uint8) bool {
+	return d.Buttons[index].value
 }
 
 // Hat latest position.
 // provided coords slice needs to be long enough to hold all the hat's axis.
-func (d HID) HatCoords(hat uint8, coords []float32) {
+func (d HID) HatCoords(index uint8, coords []float32) {
 	for _, h := range d.HatAxes {
-		if h.number == hat {
+		if h.number == index {
 			coords[h.axis-1] = h.value
 		}
 	}
