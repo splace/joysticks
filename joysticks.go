@@ -357,16 +357,6 @@ func (d HID) OnEdge(index uint8) chan Event {
 //}
 
 
-// see if Device exists.
-func DeviceExists(index uint8) (ok bool) {
-	for _, v := range d.Buttons {
-		if v.number == button {
-			return true
-		}
-	}
-	return
-}
-
 // see if Button exists.
 func (d HID) ButtonExists(index uint8) (ok bool) {
 	for _, v := range d.Buttons {

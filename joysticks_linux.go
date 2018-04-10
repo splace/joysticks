@@ -20,7 +20,14 @@ type osEventRecord struct {
 
 const maxValue = 1<<15 - 1
 
+// common path root, so Connect and DeviceExists are not thread safe.
 var inputPathSlice = []byte("/dev/input/js ")[0:13]
+
+// see if Device exists.
+func DeviceExists(index uint8) bool {
+	_,err:=os.Stat(string(strconv.AppendUint(inputPathSlice, uint64(index-1), 10)))
+	return err==nil
+}
 
 // Connect sets up a go routine that puts a joysticks events onto registered channels.
 // to register channels use the returned HID object's On<xxx>(index) methods.

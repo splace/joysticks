@@ -13,11 +13,44 @@ import (
 )
 import "math"
 
+func TestHIDsMutipleCapture(t *testing.T) {
+	if !DeviceExists(1) && !DeviceExists(2) && !DeviceExists(3) && !DeviceExists(4){
+		panic("no HIDs")
+	}
+
+	buttonEvents := Capture(
+		Channel{10, HID.OnLong}, // button #10 long pressed
+		Channel{1, HID.OnClose}, 
+	)
+	hatEvents := Capture(
+		Channel{1, HID.OnHat},  
+		Channel{2, HID.OnSpeedX},
+		Channel{2, HID.OnPanX},
+	)
+
+	var x float32 = .5
+	var f time.Duration = time.Second / 440
+	for {
+		select {
+		case <-buttonEvents[0]:
+			return
+		case <-buttonEvents[1]:
+			play(NewSound(NewTone(f, float64(x)), time.Second/3))
+		case h := <-hatEvents[0]:
+			f = time.Duration(100*math.Pow(2, float64(h.(CoordsEvent).Y))) * time.Second / 44000
+		case h := <-hatEvents[1]:
+			fmt.Printf("hat 2 X speed %+v\n",h.(AxisEvent).V)
+		case h := <-hatEvents[2]:
+			fmt.Printf("hat 2 X pan %+v\n",h.(AxisEvent).V)
+		}
+	}
+}
+
 func TestHIDsAdvanced(t *testing.T) {
 	js1 := Connect(1)
 
 	if js1 == nil {
-		panic("no HIDs")
+		panic("no HID index 1")
 	}
 	if len(js1.Buttons) < 10 || len(js1.HatAxes) < 6 {
 		t.Errorf("HID#1, available buttons %d, Hats %d\n", len(js1.Buttons), len(js1.HatAxes)/2)
@@ -90,35 +123,6 @@ func TestHIDsCapture(t *testing.T) {
 		case h := <-events[3]:
 			fmt.Println(h.(AngleEvent).Angle)
 			f = time.Duration(100*math.Pow(2, float64(h.(AngleEvent).Angle)/6.28)) * time.Second / 44000
-		}
-	}
-}
-
-func TestHIDsMutipleCapture(t *testing.T) {
-	buttonEvents := Capture(
-		Channel{10, HID.OnLong}, // button #10 long pressed
-		Channel{1, HID.OnClose}, 
-	)
-	hatEvents := Capture(
-		Channel{1, HID.OnHat},  
-		Channel{2, HID.OnSpeedX},
-		Channel{2, HID.OnPanX},
-	)
-
-	var x float32 = .5
-	var f time.Duration = time.Second / 440
-	for {
-		select {
-		case <-buttonEvents[0]:
-			return
-		case <-buttonEvents[1]:
-			play(NewSound(NewTone(f, float64(x)), time.Second/3))
-		case h := <-hatEvents[0]:
-			f = time.Duration(100*math.Pow(2, float64(h.(CoordsEvent).Y))) * time.Second / 44000
-		case h := <-hatEvents[1]:
-			fmt.Printf("hat 2 X speed %+v\n",h.(AxisEvent).V)
-		case h := <-hatEvents[2]:
-			fmt.Printf("hat 2 X pan %+v\n",h.(AxisEvent).V)
 		}
 	}
 }
