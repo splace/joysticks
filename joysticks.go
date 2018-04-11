@@ -50,7 +50,7 @@ type eventSignature struct {
 }
 
 // HID holds the in-coming event channel, available button and hat indexes, and registered events, for a human interface device.
-// has methods to control and adjust behaviour.
+// It has methods to control and adjust behaviour.
 type HID struct {
 	OSEvents chan osEventRecord
 	Buttons  map[uint8]button
@@ -111,7 +111,7 @@ type RadiusEvent struct {
 	Radius float32
 }
 
-// ParcelOutEvents waits on the HID.OSEvent channel (so is blocking), then puts any events matching onto any registered channel(s).
+// ParcelOutEvents waits on the HID.OSEvents channel (so is blocking), then puts any events matching onto any registered channel(s).
 func (d HID) ParcelOutEvents() {
 	for evt := range d.OSEvents {
 		switch evt.Type {
@@ -229,9 +229,9 @@ type Channel struct {
 }
 
 // Capture is highlevel automation of the setup of event channels.
-// returned are matching chan's for each registree, which then receive events of the type and index the registree indicated.
+// Returned is a slice of chan's, matching each registree, which then receive events of the type and index the registree indicated.
 // It uses the first available joystick, from a max of 4.
-// Doesn't return HID object, so settings are fixed.
+// Since it doesn't return a HID object, channels are immutable.
 func Capture(registrees ...Channel) []chan Event {
 	d := Connect(1)
 	for i := 2; d == nil && i < 5; i++ {
