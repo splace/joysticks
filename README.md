@@ -22,13 +22,11 @@ Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.sv
 
 ### highlevel 
 
-automates Connect, device event chan creation and Parcelling out events 
-
+automates Connection to an available device, event chan creation and parcelling out those events 
 
 ```` Go
 // block until button one pressed.
 package main
-
 
 import . "github.com/splace/joysticks"
 
@@ -45,17 +43,18 @@ func main() {
 allows device interrogation and event re-assigning.
 
 ```` Go
-// log description of events when pressing button #1 or moving hat#1. 
+// log a description of events when pressing button #1 or moving hat#1. 
 // 10sec timeout.
 package main
 
 import . "github.com/splace/joysticks"
 import "log"
-import  "time"
+import "time"
 
 func main() {
 	// try connecting to specific controller.
-	// system assigned index: typically increments on each new controller added.
+	// the index is system assigned, typically it increments on each new controller added.
+	// indexes remain fixed for a given controller, if/when other controller(s) are removed.
 	device := Connect(1)
 
 	if device == nil {
