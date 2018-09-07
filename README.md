@@ -6,11 +6,13 @@ uses Linux kernel 'input' interface, available on a wide range of linux devices,
 
 uses go channels to pipe around events, for flexibility and multi-threading.
 
-## Operation
+## Using
 
-make event channels from methods on HID type.  `HID.On<<event>>()`
+basically, after some setup, you handle events on the channels returned by methods on the HID type. each specific to an event type;  `HID.On<<event type>>(<<index>>)`
 
-also some higher-level event modifiers for common UI abstractions, to help standard usage.
+the Capture() method automates this by returning a slice of channels for all the required events.
+
+package also has some higher-level event modifiers for common UI abstractions, to help standardise advanced usage.
 
 Overview/docs: [![GoDoc](https://godoc.org/github.com/splace/joysticks?status.svg)](https://godoc.org/github.com/splace/joysticks)
 
@@ -32,7 +34,7 @@ import . "github.com/splace/joysticks"
 
 func main() {
 	evts := Capture(
-		Channel{1, HID.OnClose},  // chan index#0 set to receive button #1 closes events
+		Channel{1, HID.OnClose},  // evts[0] set to receive button #1 closes events
 	)
 	<-evts[0]
 }
