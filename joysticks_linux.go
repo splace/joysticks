@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -38,7 +39,7 @@ func Connect(index int) (d *HID) {
 	if e != nil {
 		return nil
 	}
-	d = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[eventSignature]chan Event)}
+	d = &HID{make(chan osEventRecord), make(map[uint8]button), make(map[uint8]hatAxis), make(map[eventSignature]chan Event), &sync.RWMutex{},&sync.RWMutex{}, &sync.RWMutex{}}
 	// start thread to read joystick events to the joystick.state osEvent channel
 	go eventPipe(r, d.OSEvents)
 	d.populate()
