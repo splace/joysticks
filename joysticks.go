@@ -429,7 +429,7 @@ func (d HID) HatExists(index uint8) (ok bool) {
 func (d HID) ButtonClosed(index uint8) bool {
 	d.hatLock.RLock()
 	val := d.Buttons[index].value
-	d.hatLock.Unlock()
+	d.hatLock.RUnlock()
 	return val
 }
 
